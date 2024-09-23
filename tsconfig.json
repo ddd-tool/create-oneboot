@@ -1,0 +1,21 @@
+{
+  "extends": "@tsconfig/node20/tsconfig.json",
+  "include": [
+    "src/**/*",
+    "src/index.cts"
+  ],
+  "compilerOptions": {
+    "strict": true,
+    "resolveJsonModule": true,
+    "target": "ES6",
+    "moduleResolution": "Bundler",
+    "module": "ESNext",
+    "esModuleInterop": true,
+    "lib": [
+      "DOM"
+    ],
+    "types": [
+      "node",
+    ],
+  },
+}

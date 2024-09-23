@@ -1,0 +1,18 @@
+{
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.tabSize": 2,
+    "prettier.semi": false,
+    "prettier.singleQuote": true,
+    "[rust]": {
+        "editor.tabSize": 4,
+        "editor.defaultFormatter": "rust-lang.rust-analyzer"
+    },
+    "[toml]": {
+        "editor.defaultFormatter": "tamasfe.even-better-toml"
+    },
+    "[pest]": {
+        "editor.tabSize": 4,
+        "editor.defaultFormatter": "pest.pest-ide-tools"
+    }
+}

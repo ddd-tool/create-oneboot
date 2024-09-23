@@ -1,0 +1,282 @@
+comment_line  = @{ (!NEWLINE ~ ANY)* }
+comment_block = @{ (!"*/" ~ ANY)* }
+COMMENT       = _{ ("//" ~ BLANK_* ~ comment_line) | ("/*" ~ comment_block ~ "*/") }
+WHITESPACE    = _{ " " | "\t" | NEWLINE | COMMENT }
+BLANK_        = _{ " " | "\t" }
+
+ESCAPED_CHAR_             = @{ "\\" ~ ANY }
+NORMAL_CHAR_              = @{ !("\"" | "\\") ~ ANY }
+ARITHMETIC_OPERATOR_      = _{ "+" | "-" | "*" | "/" | "^" | "%" | "&" | "|" }
+ARITHMETIC_SELF_OPERATOR_ = _{ "++" | "--" }
+ASSIGNMENT_OPERATOR_      = _{ "=" | "+=" | "-=" | "*=" | "/=" | "%=" | "^=" | "|=" | "&=" | "<<=" | ">>=" | ">>>=" }
+CALL_OPERATOR_            = _{ "." }
+KEYWORD                   = _{
+    CLASS_
+  | DEFAULT_
+  | PUBLIC_
+  | PRIVATE_
+  | PROTECTED_
+  | FINAL_
+  | STATIC_
+  | INTERFACE_
+  | ABSTRACT_
+  | RECORD_
+  | IF_
+  | FOR_
+  | TRY_
+  | CATCH_
+  | IMPLEMENTS_
+  | EXTENDS_
+  | IMPORT_
+  | PACKAGE_
+}
+
+LOGIC_NOT_         = _{ "!" }
+COMPOUND_OPERATOR_ = @{
+    "=="
+  | ASSIGNMENT_OPERATOR_
+  | "!="
+  | ">="
+  | "<="
+  | ">"
+  | "<"
+  | "&&"
+  | "^"
+  | LOGIC_NOT_
+  | ARITHMETIC_OPERATOR_
+  | CALL_OPERATOR_
+}
+
+// 字面值
+integer            = @{ ("-")? ~ (ASCII_DIGIT+ | "0x" ~ HEX_DIGIT+ | "0X" ~ HEX_DIGIT+ | "0b" ~ ASCII_DIGIT+ | "0B" ~ ASCII_DIGIT+ | "0" ~ ASCII_DIGIT+) }
+decimal            = @{ integer | ASCII_DIGIT* ~ "." ~ ASCII_DIGIT+ | ASCII_DIGIT+ ~ "." ~ ASCII_DIGIT* }
+number             = @{ integer | decimal }
+number_expression  = @{ byte_expression | short_expression | int_expression | long_expression | float_expression | double_expression }
+qualified_name     = ${ !(KEYWORD ~ &(EOI | WHITESPACE | ".")) ~ (ASCII_ALPHANUMERIC | "_")+ }
+qualified_name_ref = ${ qualified_name ~ ("." ~ qualified_name)* }
+qualified_generic  = ${ ("?" | qualified_name) ~ (WHITESPACE* ~ generic_declaration)? ~ (WHITESPACE* ~ array_declaration)? ~ (WHITESPACE+ ~ EXTENDS_ ~ WHITESPACE+ ~ qualified_name_ref)? }
+
+// 命名空间相关
+IMPORT_  = _{ "import" }
+PACKAGE_ = _{ "package" }
+
+// 基础类型
+BOOLEAN_           = @{ "boolean" }
+boolean_expression = @{ "true" | "false" }
+BYTE_              = @{ "byte" }
+byte_expression    = @{ integer }
+CHAR_              = @{ "char" }
+char_expression    = @{ "'" ~ ANY ~ "'" }
+SHORT_             = @{ "short" }
+short_expression   = @{ integer }
+INT_               = @{ "int" }
+int_expression     = @{ integer }
+LONG_              = @{ "long" }
+long_expression    = @{ integer ~ ("L" | "l") }
+FLOAT_             = @{ "float" }
+float_expression   = @{ number ~ ("F" | "f") }
+DOUBLE_            = @{ "double" }
+double_expression  = @{ number ~ ("D" | "d") }
+string_expression  = @{ "\"" ~ (ESCAPED_CHAR_ | NORMAL_CHAR_)* ~ "\"" }
+array_declaration  = @{ "[" ~ "]" }
+array_expression   = ${ "{" ~ WHITESPACE* ~ (parameters_apply ~ WHITESPACE*)? ~ ","? ~ WHITESPACE* ~ "}" }
+
+VOID = _{ "void" }
+NULL = _{ "null" }
+
+// 修饰符
+DEFAULT_       = _{ "default" }
+PUBLIC_        = _{ "public" }
+PROTECTED_     = _{ "protected" }
+PRIVATE_       = _{ "private" }
+STATIC_        = _{ "static" }
+FINAL_         = _{ "final" }
+ABSTRACT_      = _{ "abstract" }
+VOLATILE_      = _{ "volatile" }
+modifier       = @{ DEFAULT_ | PUBLIC_ | PROTECTED_ | PRIVATE_ | STATIC_ | FINAL_ | ABSTRACT_ | VOLATILE_ }
+modifier_multi = ${ modifier ~ (WHITESPACE+ ~ modifier)* }
+
+// 参数
+parameter_declaration  = ${
+    (annotation_expression ~ WHITESPACE)* ~ (LONG_ | INT_ | SHORT_ | BYTE_ | CHAR_ | DOUBLE_ | FLOAT_ | BOOLEAN_ | qualified_name_ref) ~ WHITESPACE* ~ (generic_declaration ~ WHITESPACE*)? ~ (array_declaration ~ WHITESPACE*)? ~ qualified_name
+}
+parameters_declaration = ${ parameter_declaration ~ (WHITESPACE* ~ "," ~ WHITESPACE* ~ parameter_declaration)* }
+parameters_apply       = ${ expression ~ (WHITESPACE* ~ "," ~ WHITESPACE* ~ expression)* }
+
+// 返回值
+return_type_declaration = ${
+    VOID
+  | qualified_name_ref ~ (WHITESPACE* ~ generic_declaration)? ~ (WHITESPACE* ~ array_declaration)?
+}
+
+// 表达式
+VAR                       = @{ "var" }
+arithmetic_expression     = ${
+    (call_function_expression | number_expression | exact_expression) ~ WHITESPACE* ~ ARITHMETIC_OPERATOR_ ~ WHITESPACE* ~ expression
+  | ARITHMETIC_SELF_OPERATOR_ ~ WHITESPACE* ~ (call_function_expression | number_expression | exact_expression)
+  | (call_function_expression | number_expression | exact_expression) ~ WHITESPACE* ~ ARITHMETIC_SELF_OPERATOR_
+}
+exact_expression          = ${ (THIS_ ~ WHITESPACE* ~ "." ~ WHITE_SPACE*)? ~ qualified_name_ref | THIS_ }
+call_function_expression  = ${ qualified_name_ref ~ WHITESPACE* ~ "(" ~ WHITESPACE* ~ (parameters_apply ~ WHITESPACE*)? ~ ")" ~ (WHITESPACE* ~ "." ~ WHITESPACE* ~ call_function_expression)* }
+assignment_expression     = ${
+    qualified_name_ref ~ WHITESPACE* ~ "=" ~ WHITESPACE* ~ expression
+}
+var_assignment_expression = ${ qualified_name_ref ~ WHITESPACE* ~ "=" ~ WHITESPACE* ~ expression }
+compound_expression       = ${
+    LOGIC_NOT_? ~ WHITESPACE* ~ single_expression ~ WHITESPACE* ~ (COMPOUND_OPERATOR_ ~ WHITESPACE* ~ expression ~ WHITESPACE*)*
+  | (LOGIC_NOT_)+ ~ expression
+}
+single_expression         = ${
+    array_expression
+  | new_expression
+  | arithmetic_expression
+  | call_function_expression
+  | assignment_expression
+  | string_expression
+  | boolean_expression
+  | double_expression
+  | float_expression
+  | long_expression
+  | int_expression
+  | byte_expression
+  | char_expression
+  | short_expression
+  | annotation_expression
+  | exact_expression
+  | group_expression
+  | NULL
+}
+group_expression          = ${ "(" ~ WHITESPACE* ~ expression ~ WHITESPACE* ~ ")" }
+expression                = ${
+    compound_expression
+  | single_expression
+}
+
+// 语句
+var_declaration_statement = ${ (VAR | qualified_name_ref) ~ (WHITESPACE* ~ generic_declaration)? ~ (WHITESPACE* ~ array_declaration)? ~ (WHITESPACE* ~ qualified_name) ~ (WHITESPACE* ~ "=" ~ WHITESPACE* ~ expression)? ~ WHITESPACE* ~ ";" }
+var_assignment_statement  = ${ var_assignment_expression ~ WHITESPACE* ~ ";" }
+object_field_declaration  = ${ (annotation_expression ~ WHITESPACE*)* ~ (modifier_multi ~ WHITESPACE+)? ~ var_declaration_statement }
+
+TRY_          = _{ "try" }
+CATCH_        = _{ "catch" }
+FINALLY_      = _{ "finally" }
+code_block    = ${ "{" ~ (WHITESPACE | statement | code_block)* ~ "}" }
+try_statement =  { TRY_ ~ code_block ~ (CATCH_ ~ "(" ~ parameters_declaration ~ ")" ~ "")? ~ (FINALLY_)? }
+
+IF_               = _{ "if" }
+ELSE_             = _{ "else" }
+else_if_statement = ${
+    ELSE_ ~ WHITESPACE+ ~ IF_ ~ WHITESPACE* ~ "(" ~ WHITESPACE* ~ expression ~ WHITESPACE* ~ ")" ~ WHITESPACE* ~ (expression ~ WHITESPACE* ~ ";" | code_block)
+}
+else_statement    = ${
+    ELSE_ ~ WHITESPACE* ~ (expression ~ WHITESPACE* ~ ";" | code_block)
+}
+if_statement      = ${
+    IF_ ~ WHITESPACE* ~ "(" ~ WHITESPACE* ~ expression ~ WHITESPACE* ~ ")" ~ WHITESPACE* ~ (expression ~ WHITESPACE* ~ ";" | code_block) ~ WHITESPACE* ~ (else_if_statement ~ WHITESPACE*)* ~ else_statement?
+}
+
+FOR_          = _{ "for" }
+for_statement = ${ FOR_ ~ WHITESPACE* ~ "(" ~ WHITESPACE* ~ var_declaration_statement ~ WHITESPACE* ~ expression ~ WHITESPACE* ~ ";" ~ WHITESPACE* ~ expression ~ WHITESPACE* ~ ")" ~ WHITESPACE* ~ (statement | code_block) }
+
+RETURN_          = _{ "return" }
+return_statement = ${ RETURN_ ~ (WHITESPACE+ ~ expression)? ~ WHITESPACE* ~ ";" }
+
+call_function_statement = { call_function_expression ~ ";" }
+
+annotation_expression_value = ${
+    var_assignment_expression ~ (WHITESPACE* ~ "," ~ WHITESPACE* ~ var_assignment_expression)*
+  | expression
+}
+annotation_expression_type  = ${ qualified_name_ref }
+annotation_expression       = ${
+    "@" ~ WHITESPACE* ~ annotation_expression_type ~ (WHITESPACE* ~ "(" ~ WHITESPACE* ~ (annotation_expression_value ~ WHITESPACE*)? ~ ")")?
+}
+
+statement = {
+    return_statement
+  | new_statement
+  | throw_statement
+  | if_statement
+  | for_statement
+  | try_statement
+  | var_declaration_statement
+  | call_function_statement
+  | var_assignment_statement
+}
+
+// 对象
+IMPLEMENTS_            = _{ "implements" }
+implements_declaration =  { IMPLEMENTS_ ~ qualified_name_ref ~ generic_declaration* ~ ("," ~ qualified_name_ref ~ generic_declaration*)* }
+
+EXTENDS_            = _{ "extends" }
+extends_declaration =  { EXTENDS_ ~ qualified_name_ref ~ generic_declaration* }
+
+THROWS_            = _{ "throws" }
+throws_declaration =  { THROWS_ ~ qualified_name_ref ~ generic_declaration* }
+
+THROW_          = _{ "throw" }
+throw_statement =  { THROW_ ~ expression ~ ";" }
+
+NEW_           = _{ "new" }
+new_expression = ${ NEW_ ~ WHITESPACE+ ~ qualified_name_ref ~ (WHITESPACE* ~ generic_declaration)? ~ WHITESPACE* ~ "(" ~ WHITESPACE* ~ parameters_apply? ~ WHITESPACE* ~ ")" ~ (WHITESPACE* ~ class_body_declaration)? }
+new_statement  = ${ new_expression ~ WHITESPACE* ~ ";" }
+
+THIS_ = _{ "this" }
+
+generic_declaration = ${ "<" ~ WHITESPACE* ~ qualified_generic ~ (WHITESPACE* ~ "," ~ WHITESPACE* ~ qualified_generic)* ~ WHITESPACE* ~ ">" }
+
+function_declaration = ${
+    (annotation_expression ~ WHITESPACE*)* ~ (modifier_multi ~ WHITESPACE+)? ~ (generic_declaration ~ WHITESPACE*)? ~ return_type_declaration ~ WHITESPACE+ ~ qualified_name ~ WHITESPACE* ~ "(" ~ WHITESPACE* ~ (parameters_declaration ~ WHITESPACE*)? ~ ")" ~ WHITESPACE* ~ (throws_declaration ~ WHITESPACE*)? ~ (code_block | ";")
+}
+
+CLASS_                        = _{ "class" }
+class_constructor_declaration = ${
+    (annotation_expression ~ WHITESPACE*)* ~ (modifier_multi ~ WHITESPACE*)? ~ qualified_name ~ WHITESPACE* ~ "(" ~ WHITESPACE* ~ parameters_declaration? ~ WHITESPACE* ~ ")" ~ (WHITESPACE* ~ throws_declaration)? ~ WHITESPACE* ~ code_block
+}
+class_code_block              = ${ modifier_multi? ~ (WHITESPACE* ~ code_block) }
+class_body_declaration        = ${
+    "{" ~ (WHITESPACE | class_code_block | class_constructor_declaration | object_field_declaration | function_declaration | class_declaration)* ~ "}"
+}
+class_declaration             =  {
+    annotation_expression* ~ modifier_multi? ~ CLASS_ ~ qualified_name ~ extends_declaration? ~ implements_declaration? ~ class_body_declaration
+}
+
+INTERFACE_                 = _{ "interface" }
+interface_body_declaration =  {
+    "{" ~ (object_field_declaration | function_declaration | class_declaration)* ~ "}"
+}
+interface_declaration      =  {
+    annotation_expression* ~ modifier_multi? ~ INTERFACE_ ~ qualified_name ~ extends_declaration? ~ interface_body_declaration
+}
+
+ENUM_                           = _{ "enum" }
+enum_instance_apart_declaration =  {
+    annotation_expression* ~ qualified_name ~ ("(" ~ parameters_apply? ~ ")")?
+}
+enum_instance_declaration       =  {
+    enum_instance_apart_declaration ~ ("," ~ enum_instance_apart_declaration)*
+}
+enum_body_declaration           =  {
+    "{" ~ enum_instance_declaration ~ ";" ~ (class_constructor_declaration | object_field_declaration | function_declaration)+ ~ "}"
+  | "{" ~ enum_instance_declaration? ~ ";"? ~ "}"
+}
+enum_declaration                =  {
+    annotation_expression* ~ modifier_multi? ~ ENUM_ ~ qualified_name ~ implements_declaration? ~ enum_body_declaration
+}
+
+RECORD_                        = _{ "record" }
+record_constructor_declaration =  { modifier_multi? ~ qualified_name ~ "{" ~ statement* ~ "}" }
+record_body_declaration        =  { "{" ~ (record_constructor_declaration | function_declaration)* ~ "}" }
+record_declaration             =  {
+    annotation_expression* ~ modifier_multi? ~ RECORD_ ~ qualified_name ~ "(" ~ parameters_declaration ~ ")" ~ implements_declaration? ~ record_body_declaration
+}
+
+package_value       = @{ qualified_name_ref }
+package_declaration = ${ PACKAGE_ ~ WHITESPACE+ ~ package_value ~ WHITESPACE* ~ ";" }
+
+import_value       = @{ qualified_name_ref ~ ".*"? }
+import_declaration =  { IMPORT_ ~ import_value ~ ";" }
+
+root = {
+    SOI ~ (COMMENT | package_declaration | import_declaration | interface_declaration | record_declaration | class_declaration | enum_declaration)* ~ EOI
+}
