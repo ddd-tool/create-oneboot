@@ -1,6 +1,7 @@
 {
-  "name": "@ddd-tool/oneboot",
+  "name": "@ddd-tool/create-oneboot",
   "version": "0.0.1-alpha.0",
+  "private": false,
   "description": "",
   "bin": {
     "oneboot-tool": "./bin/oneboot-tool.cjs"
