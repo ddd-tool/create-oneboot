@@ -1,12 +1,18 @@
 type DataType = any | undefined | null
-type ReactiveWrapperType<T extends DataType> = {
+interface ReactiveWrapperType<T extends DataType> {
   value: T
+  hasInitialized: () => boolean
+  _initialized: boolean
   _watchCallbacks: Function[]
 }
 
 export function ref<T>(v?: T | null): typeof data {
   const data: ReactiveWrapperType<T> = {
     value: v!,
+    hasInitialized: function () {
+      return this._initialized
+    },
+    _initialized: v === undefined,
     _watchCallbacks: [],
   }
   return new Proxy(data, {
@@ -18,6 +24,7 @@ export function ref<T>(v?: T | null): typeof data {
       for (const f of obj._watchCallbacks) {
         f(obj[k], v)
       }
+      data._initialized = true
       return true
     },
   })

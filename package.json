@@ -3,6 +3,7 @@
   "version": "0.0.1-alpha.0",
   "private": false,
   "description": "",
+  "type": "module",
   "bin": {
     "oneboot-tool": "./bin/oneboot-tool.cjs"
   },
@@ -13,11 +14,11 @@
     "node": ">=v18.3.0"
   },
   "scripts": {
-    "dev": "node ./bin/oneboot-tool.cjs",
-    "build": "pnpm build-wasm && pnpm build-ts",
+    "dev": "pnpm build && node ./bin/oneboot-tool.cjs --non-interactive genVoMapper --project-root=F:/idea_projects/oneboot --input-module=domain-preset_sys --output-module=preset_sys",
+    "build": "pnpm build-ts",
     "build-ts": "tsc --noEmit --esModuleInterop && zx ./scripts/build.mjs",
     "build-wasm": "wasm-pack build ./src-rust/ --target nodejs --out-dir ../pkg && ncp ./pkg/wasm_bg.wasm ./bin/wasm_bg.wasm",
-    "test": "echo \"Warn: no test specified\" && exit 0",
+    "test": "node --loader ts-node/esm --test tests/index.test.ts",
     "verify": "tsc src/index.ts --noEmit --esModuleInterop"
   },
   "keywords": [
@@ -35,12 +36,14 @@
   },
   "devDependencies": {
     "@tsconfig/node20": "^20.1.4",
-    "@types/node": "^22.4.1",
+    "@types/node": "^22.7.3",
     "@types/prompts": "^2.4.9",
+    "commander": "^12.1.0",
     "esbuild": "^0.23.1",
     "ncp": "^2.0.0",
     "prompts": "^2.4.2",
-    "typescript": "^5.5.4",
-    "zx": "^8.1.4"
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.2",
+    "zx": "^8.1.8"
   }
 }

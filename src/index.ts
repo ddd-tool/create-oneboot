@@ -1,9 +1,12 @@
-import { configArgsFromUserChoise } from './utils/questions'
-import common from './utils/common'
+import { onCancel } from './utils/common'
+import { useArgs } from './stores/args'
 import lang from './lang'
-import * as parser from './utils/parser'
+import execGenVoMapper from './gen-vo-mapper'
 
 const t = lang.action.t
+console.info(t('sign.scriptStart'))
+
+const argsStore = useArgs()
 
 init()
   .then(() => {
@@ -14,14 +17,15 @@ init()
     console.error(t('sign.exitWithError'))
   })
 
-process.on('SIGINT', common.action.onCancel)
+process.on('SIGINT', onCancel)
 
 async function init() {
-  common.action.configArgsFromUserArgs()
-  const nonInteractive = common.state.currentArgs.value['--non-interactive']
-  if (!nonInteractive) {
-    await configArgsFromUserChoise()
+  await argsStore.action.init()
+  switch (argsStore.state.currentCommand.value) {
+    case 'genVoMapper':
+      execGenVoMapper()
+      break
+    case 'none':
+      break
   }
-  const code = `public record HelloWorld (String attr1) {}`
-  console.log(JSON.stringify(parser.java.parse(code), null, 2))
 }

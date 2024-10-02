@@ -1,15 +1,17 @@
 {
   "extends": "@tsconfig/node20/tsconfig.json",
   "include": [
+    "src/*",
     "src/**/*",
-    "src/index.cts"
+    "test/*",
+    "test/**/*"
   ],
   "compilerOptions": {
     "strict": true,
     "resolveJsonModule": true,
-    "target": "ES6",
     "moduleResolution": "Bundler",
     "module": "ESNext",
+    "target": "ESNext",
     "esModuleInterop": true,
     "lib": [
       "DOM"

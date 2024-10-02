@@ -3,19 +3,28 @@ import javaLanguage from 'tree-sitter-java'
 
 export namespace java {
   enum Grammar {
+    package_declaration = 'package_declaration',
+    scoped_identifier = 'scoped_identifier',
     class_declaration = 'class_declaration',
     interface_declaration = 'interface_declaration',
     enum_declaration = 'enum_declaration',
     record_declaration = 'record_declaration',
+    type_identifier = 'type_identifier',
     identifier = 'identifier',
     formal_parameters = 'formal_parameters',
     formal_parameter = 'formal_parameter',
   }
   export interface JavaFileMeta {
+    _filePath: string
+    package_declaration?: PackageMeta
     class_declaration: ClassMeta[]
     interface_declaration: InterfaceMeta[]
     enum_declaration: EnumMeta[]
     record_declaration: RecordMeta[]
+  }
+  export interface PackageMeta {
+    grammar: Grammar
+    name: string
   }
   export interface RecordMeta {
     grammar: Grammar
@@ -47,6 +56,7 @@ export namespace java {
   }
   export interface FormalParameterMeta {
     grammar: Grammar
+    type: string
     name: string
   }
   export type MethodMeta = {
@@ -58,8 +68,10 @@ export namespace java {
   export function parseTree(content: string): Tree {
     return parser.parse(content)
   }
-  export function parse(content: string): JavaFileMeta {
+  export function parse(path: string, content: string): JavaFileMeta {
     const result: JavaFileMeta = {
+      _filePath: path,
+      package_declaration: undefined,
       class_declaration: [],
       interface_declaration: [],
       enum_declaration: [],
@@ -72,13 +84,24 @@ export namespace java {
       return result
     }
     for (const child of children) {
-      if (child.type === Grammar.class_declaration) {
+      if (child.type === Grammar.package_declaration) {
+        result.package_declaration = parsePackageMeta(child, content)
+      } else if (child.type === Grammar.class_declaration) {
         result.class_declaration.push(parseClassMeta(child, content))
       } else if (child.type === Grammar.interface_declaration) {
         result.interface_declaration.push(parseInterfaceMeta(child, content))
       } else if (child.type === Grammar.record_declaration) {
         result.record_declaration.push(parseRecordMeta(child, content))
       }
+    }
+    return result
+  }
+
+  function parsePackageMeta(node: SyntaxNode, content: string): PackageMeta {
+    const child = node.children.find((ele) => ele.type === Grammar.scoped_identifier)!
+    const result: PackageMeta = {
+      grammar: Grammar.package_declaration,
+      name: content.substring(child.startIndex, child.endIndex),
     }
     return result
   }
@@ -115,6 +138,7 @@ export namespace java {
         for (const formalParameter of formalParameters) {
           result.formalParameters.push({
             grammar: Grammar.formal_parameter,
+            type: formalParameter.type,
             name: formalParameter.name,
           })
         }
@@ -131,6 +155,8 @@ export namespace java {
       }
       result.push({
         grammar: Grammar.formal_parameter,
+        // type: findName(e, content),
+        type: findType(e, content),
         name: findName(e, content),
       })
     })
@@ -140,6 +166,15 @@ export namespace java {
   function findName(node: SyntaxNode, content: string): string {
     for (const child of node.namedChildren) {
       if (child.type === Grammar.identifier) {
+        return content.substring(child.startIndex, child.endIndex)
+      }
+    }
+    return ''
+  }
+
+  function findType(node: SyntaxNode, content: string): string {
+    for (const child of node.namedChildren) {
+      if (child.type === Grammar.type_identifier) {
         return content.substring(child.startIndex, child.endIndex)
       }
     }
