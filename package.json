@@ -36,7 +36,7 @@
   },
   "devDependencies": {
     "@tsconfig/node20": "^20.1.4",
-    "@types/node": "^22.7.3",
+    "@types/node": "^22.7.4",
     "@types/prompts": "^2.4.9",
     "commander": "^12.1.0",
     "esbuild": "^0.23.1",
