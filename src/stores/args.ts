@@ -47,13 +47,14 @@ function configArgsFromCommandLine() {
     }
   }
   if (commandCount > 1) {
-    onError(t('error.invalidArgs', { str: program.commands.map((item) => item.name()).join(' && ') }))
+    onError(
+      t('error.invalidArgs', {
+        str: program.commands.map((item) => item.name()).join(' && '),
+      })
+    )
   } else if (commandCount === 0) {
     isReady.value = true
     return
-  }
-  if ((program.opts() as Args).nonInteractive) {
-    isReady.value = true
   }
   const subcommand = program.commands[0]
   const subargs = subcommand.opts()
@@ -63,6 +64,9 @@ function configArgsFromCommandLine() {
       genVoMapperArgs.value = subargs as GenVoMapperArgs
       break
     default:
+  }
+  if ((program.opts() as Args).nonInteractive) {
+    isReady.value = true
   }
 }
 configArgsFromCommandLine()
@@ -90,7 +94,12 @@ async function configArgsFromUserChoise() {
         name: 'subcommand',
         type: 'select',
         message: t('question.message.subcommand'),
-        choices: [{ title: t('question.message.subcommand.generateVoMapper'), value: SubcommandEnum.GenVoMapper }],
+        choices: [
+          {
+            title: t('question.message.subcommand.generateVoMapper'),
+            value: SubcommandEnum.GenVoMapper,
+          },
+        ],
       },
     ],
     { onCancel }
@@ -144,13 +153,23 @@ async function configGenVoMapperFromUserChoise() {
         name: 'inputModule',
         type: 'select',
         message: t('question.message.inputModule'),
-        choices: [{ title: t('question.message.subcommand.generateVoMapper'), value: 'genVo' }],
+        choices: [
+          {
+            title: t('question.message.subcommand.generateVoMapper'),
+            value: 'genVo',
+          },
+        ],
       },
       {
         name: 'outputModule',
         type: 'select',
         message: t('question.message.outputModule'),
-        choices: [{ title: t('question.message.subcommand.generateVoMapper'), value: 'genVo' }],
+        choices: [
+          {
+            title: t('question.message.subcommand.generateVoMapper'),
+            value: 'genVo',
+          },
+        ],
       },
     ],
     { onCancel }

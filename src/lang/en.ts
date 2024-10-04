@@ -1,9 +1,9 @@
 import { DictType } from './define'
 
 const enDict: DictType = {
-  'sign.scriptStart': '===== Script start =====',
-  'sign.successComplete': '===== Program execution succeeded =====',
-  'sign.exitWithError': '===== Exit with error =====',
+  'signal.scriptStart': '===== Script start =====',
+  'signal.successComplete': '===== Program execution succeeded =====',
+  'signal.exitWithError': '===== Exit with error =====',
   'question.message.subcommand': 'Select the business type',
   'question.message.subcommand.generateVoMapper': 'Generate VO mapper',
   'question.message.projectRoot': 'Input project root',

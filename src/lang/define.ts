@@ -1,8 +1,8 @@
 export type LangType = 'zh' | 'en'
 export type DictType = {
-  'sign.scriptStart': string
-  'sign.successComplete': string
-  'sign.exitWithError': string
+  'signal.scriptStart': string
+  'signal.successComplete': string
+  'signal.exitWithError': string
   'question.message.subcommand': string
   'question.message.subcommand.generateVoMapper': string
   'question.message.projectRoot': string

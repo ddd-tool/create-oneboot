@@ -4,5 +4,6 @@
     "rust-lang.rust-analyzer",
     "pest.pest-ide-tools",
     "tamasfe.even-better-toml",
+    "gruntfuggly.todo-tree"
   ]
 }
