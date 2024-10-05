@@ -4,6 +4,7 @@ import javaLanguage from 'tree-sitter-java'
 export namespace java {
   enum Grammar {
     package_declaration = 'package_declaration',
+    import_declaration = 'import_declaration',
     scoped_identifier = 'scoped_identifier',
     class_declaration = 'class_declaration',
     interface_declaration = 'interface_declaration',
@@ -17,6 +18,7 @@ export namespace java {
   export interface JavaFileMeta {
     _filePath: string
     package_declaration?: PackageMeta
+    import_declaration: string[]
     class_declaration: ClassMeta[]
     interface_declaration: InterfaceMeta[]
     enum_declaration: EnumMeta[]
@@ -72,6 +74,7 @@ export namespace java {
     const result: JavaFileMeta = {
       _filePath: path,
       package_declaration: undefined,
+      import_declaration: [],
       class_declaration: [],
       interface_declaration: [],
       enum_declaration: [],
@@ -86,6 +89,9 @@ export namespace java {
     for (const child of children) {
       if (child.type === Grammar.package_declaration) {
         result.package_declaration = parsePackageMeta(child, content)
+      } else if (child.type === Grammar.import_declaration) {
+        result.import_declaration.push(findByGrammar(child, Grammar.scoped_identifier, content)!)
+        // result.import_declaration.push(content.substring(child.startIndex, child.endIndex))
       } else if (child.type === Grammar.class_declaration) {
         result.class_declaration.push(parseClassMeta(child, content))
       } else if (child.type === Grammar.interface_declaration) {
@@ -156,7 +162,7 @@ export namespace java {
       result.push({
         grammar: Grammar.formal_parameter,
         // type: findName(e, content),
-        type: findType(e, content),
+        type: findByGrammar(e, Grammar.type_identifier, content)!,
         name: findName(e, content),
       })
     })
@@ -172,12 +178,12 @@ export namespace java {
     return ''
   }
 
-  function findType(node: SyntaxNode, content: string): string {
-    for (const child of node.namedChildren) {
-      if (child.type === Grammar.type_identifier) {
+  function findByGrammar(node: SyntaxNode, grammar: Grammar, content: string): string | null {
+    for (const child of node.children) {
+      if (child.type === grammar) {
         return content.substring(child.startIndex, child.endIndex)
       }
     }
-    return ''
+    return null
   }
 }

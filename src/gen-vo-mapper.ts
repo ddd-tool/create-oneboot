@@ -3,13 +3,13 @@ import * as parser from './utils/parser'
 import fs from 'node:fs'
 import path from 'node:path'
 import { java } from './utils/parser'
-import { snakeToUpperCamel } from './utils/common'
+import { StrUtil } from './utils/common'
 
 type OutputJavaFile = {
   filePath: string
   content: string
 }
-type ParseMap = Map<String, java.JavaFileMeta[]>
+type ParseMap = { [moduleName: string]: java.JavaFileMeta[] }
 
 const argsStore = useArgs()
 
@@ -19,8 +19,8 @@ export default async function () {
 
   //遍历文件夹
   const parseResult = walkJavaFile(path.join(param.projectRoot, param.inputModule))
-  let parseMap: ParseMap = new Map()
-  parseMap = parseResult.reduce((accumulator, currentValue) => {
+  let parseMap: ParseMap = {}
+  parseMap = parseResult.reduce((map, currentValue) => {
     const regStr = `^${path.join(
       param.projectRoot,
       param.inputModule,
@@ -34,16 +34,15 @@ export default async function () {
     const matches = reg.exec(currentValue._filePath.replace(/\\/g, '/'))
     if (!matches) {
       console.warn('匹配失败', currentValue._filePath.replace(/\\/g, '/'), reg)
-      return accumulator
+      return map
     }
-    // console.warn('匹配成功', currentValue._filePath.replace(/\\/g, '/'), reg)
-    if (!accumulator.get(matches[1])) {
-      accumulator.set(matches[1], [])
+    if (!map[matches[1]]) {
+      map[matches[1]] = []
     }
-    accumulator.get(matches[1])!.push(currentValue)
-    return accumulator
+    map[matches[1]]!.push(currentValue)
+    return map
   }, parseMap)
-  // console.warn(JSON.stringify(parseMap, null, 2))
+  console.warn(JSON.stringify(parseMap, null, 2))
   const genResult = genCode(param.projectRoot, param.packageName, param.outputModule, parseMap)
   writeFile(...genResult)
 }
@@ -75,32 +74,36 @@ function walkJavaFile(parentPath: string, parseResult: parser.java.JavaFileMeta[
 }
 
 function genCode(projectRoot: string, packageName: string, outputModule: string, parseMap: ParseMap): OutputJavaFile[] {
-  const namespaces = new Map<string, any>()
-
   const files: OutputJavaFile[] = []
-  parseMap.forEach((value, key) => {
-    let content = `package ${packageName}.${outputModule.replace(/-/g, '.')}.gen.mapper;
-
-import org.mapstruct.Mapper;
-
-@Mapper
-public interface ${snakeToUpperCamel(key)}VoMapper {
-    
-}
-`
-    //TODO 注入代码
-    for (const m of value) {
-      if (m.package_declaration) {
-        const reg = new RegExp(`^package\s+${packageName + outputModule.replace(/-/g, '.')}([a-zA-Z0-9_]+)\.vo;$`)
-        const matches = reg.exec(m.package_declaration.name)
-        if (matches) {
-          if (m.record_declaration.length > 0) {
-            namespaces.set(matches[1], m.record_declaration)
-          } else if (m.class_declaration.length > 0) {
-            namespaces.set(matches[1], m.class_declaration)
-          }
+  Object.keys(parseMap).forEach((key) => {
+    const vos = parseMap[key]
+    const voMapperCode = new VoMapperCode(
+      `${packageName}.${outputModule.replace(/-/g, '.')}.gen.mapper`,
+      `${StrUtil.snakeToUpperCamel(key)}VoMapper`
+    )
+    for (const vo of vos) {
+      vo.import_declaration.forEach((i) => {
+        if (i.endsWith('*')) {
+          voMapperCode.addImport(i)
         }
-      }
+      })
+      vo.record_declaration.forEach((record) => {
+        if (!record.name.endsWith('Vo')) {
+          return
+        }
+        const paras = record.formalParameters
+        if (paras.length !== 1) {
+          return
+        }
+        voMapperCode.addImport(vo.package_declaration?.name! + '.' + vo.record_declaration[0].name)
+        voMapperCode.addMapping(record.name, { fieldType: paras[0].type, fieldName: paras[0].name })
+      })
+      vo.class_declaration.forEach((c) => {
+        if (!c.name.endsWith('Vo')) {
+          return
+        }
+        // TODO 兼容class的值对象
+      })
     }
     files.push({
       filePath: path.join(
@@ -113,12 +116,58 @@ public interface ${snakeToUpperCamel(key)}VoMapper {
         outputModule.replace(/-/g, path.sep),
         'gen',
         'mapper',
-        `${snakeToUpperCamel(key)}VoMapper.java`
+        `${StrUtil.snakeToUpperCamel(key)}VoMapper.java`
       ),
-      content,
+      content: voMapperCode.getCode(),
     })
   })
   return files
+}
+
+class VoMapperCode {
+  packageName: string
+  ClassName: string
+  importPackages: Set<string> = new Set()
+  mappings: { [voName: string]: { fieldType: string; fieldName: string } } = {}
+  constructor(packageName: string, ClassName: string) {
+    this.packageName = packageName
+    this.ClassName = ClassName
+  }
+  addImport(packageName: string) {
+    this.importPackages.add(packageName)
+  }
+  addImports(packageNames: string[]) {
+    this.importPackages = new Set([...this.importPackages, ...packageNames])
+  }
+  addMapping(voName: string, mapping: { fieldType: string; fieldName: string }) {
+    this.mappings[voName] = mapping
+  }
+  getCode(): string {
+    let importsCode = ''
+    this.importPackages.forEach((i) => {
+      importsCode += `import ${i};\n`
+    })
+    let mappingsCode = ''
+    Object.keys(this.mappings).forEach((voName) => {
+      const { fieldType, fieldName } = this.mappings[voName]
+      mappingsCode += `    default ${fieldType} ${StrUtil.lowerFirst(fieldType)}To${voName}(${voName} source) {
+        return source.${fieldName}();
+    }
+
+    default ${voName} ${StrUtil.lowerFirst(voName)}To${fieldType}(${fieldType} source) {
+        return new ${voName}(source);
+    }
+
+`
+    })
+    return `package ${this.packageName};
+
+${importsCode}
+public interface ${this.ClassName} {
+${mappingsCode}
+}
+`
+  }
 }
 
 function writeFile(...files: OutputJavaFile[]) {

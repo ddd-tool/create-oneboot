@@ -14,11 +14,11 @@
     "node": ">=v18.3.0"
   },
   "scripts": {
-    "dev": "pnpm build && node ./bin/oneboot-tool.cjs --non-interactive genVoMapper --project-root=F:/idea_projects/oneboot --input-module=domain-preset_sys --output-module=preset_sys",
+    "dev": "pnpm build && node ./bin/oneboot-tool.cjs --non-interactive genVoMapper --project-root=D:/idea-workspace/oneboot --input-module=domain-preset_sys --output-module=preset_sys",
     "build": "pnpm build-ts",
     "build-ts": "tsc --noEmit --esModuleInterop && zx ./scripts/build.mjs",
     "build-wasm": "wasm-pack build ./src-rust/ --target nodejs --out-dir ../pkg && ncp ./pkg/wasm_bg.wasm ./bin/wasm_bg.wasm",
-    "test": "node --loader ts-node/esm --test tests/index.test.ts",
+    "test": "npx jest",
     "verify": "tsc src/index.ts --noEmit --esModuleInterop"
   },
   "keywords": [
@@ -35,13 +35,17 @@
     "tree-sitter-java": "^0.23.2"
   },
   "devDependencies": {
+    "@jest/globals": "^29.7.0",
     "@tsconfig/node20": "^20.1.4",
+    "@types/jest": "^29.5.13",
     "@types/node": "^22.7.4",
     "@types/prompts": "^2.4.9",
     "commander": "^12.1.0",
     "esbuild": "^0.23.1",
+    "jest": "^29.7.0",
     "ncp": "^2.0.0",
     "prompts": "^2.4.2",
+    "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
     "typescript": "^5.6.2",
     "zx": "^8.1.8"
