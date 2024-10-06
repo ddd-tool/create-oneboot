@@ -22,6 +22,21 @@ export function tuple<T extends any[]>(...args: T) {
   return Object.freeze(args)
 }
 
+/**
+ * Accumulate a value `times` times by calling `callback` with the previous
+ * accumulator and the current index. The return value is the final
+ * accumulator.
+ * @example
+ * const result = accumulate(0, 3, (acc, index) => acc + index)
+ * // result is 3
+ */
+export function accumulate<T>(accumulator: T, times: number, callback: (accumulator: T, index: number) => T): T {
+  Array.from({ length: times }).forEach((_, index) => {
+    accumulator = callback(accumulator, index)
+  })
+  return accumulator
+}
+
 export namespace StrUtil {
   export function upperFirst(str: string | String) {
     return str.charAt(0).toUpperCase() + str.slice(1)

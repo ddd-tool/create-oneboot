@@ -1,6 +1,7 @@
 import { ref } from '../utils/reactive'
 import lang from '../lang'
 import path from 'node:path'
+import fs from 'node:fs'
 import prompts from 'prompts'
 import { Command } from 'commander'
 import { onCancel, onError, isValidPath, isValidPackageName } from '../utils/common'
@@ -23,49 +24,27 @@ export type GenVoMapperArgs = {
 const t = lang.action.t
 const isReady = ref(false)
 
-const testCommand = new Command().name('test')
 const genVoMapperCommand = new Command()
   .name('genVoMapper')
   .requiredOption('--project-root <path>', '项目根目录')
   .option('--package-name <name>', '项目根目录', 'com.github.alphafoxz.oneboot')
   .requiredOption('--input-module <name>', '输入模块名')
   .requiredOption('--output-module <name>', '输出模块名')
-const program = new Command()
-  .name('oneboot-tool')
-  .option('--non-interactive', '非交互式脚本')
-  .addCommand(genVoMapperCommand)
-  .addCommand(testCommand)
+  .action((options) => {
+    currentCommand.value = SubcommandEnum.GenVoMapper
+    genVoMapperArgs.value.projectRoot = options.projectRoot
+    genVoMapperArgs.value.packageName = options.packageName
+    genVoMapperArgs.value.inputModule = options.inputModule
+    genVoMapperArgs.value.outputModule = options.outputModule
+  })
+const startCommand = new Command().name('start')
+const program = new Command().name('oneboot-tool').addCommand(startCommand).addCommand(genVoMapperCommand)
 const currentCommand = ref(SubcommandEnum.None)
-const genVoMapperArgs = ref<GenVoMapperArgs>()
+const genVoMapperArgs = ref<GenVoMapperArgs>({} as GenVoMapperArgs)
 
 function configArgsFromCommandLine() {
   program.parse(process.argv)
-  let commandCount = 0
-  for (const c of program.args) {
-    if (Object.values(SubcommandEnum).includes(c as SubcommandEnum)) {
-      commandCount++
-    }
-  }
-  if (commandCount > 1) {
-    onError(
-      t('error.invalidArgs', {
-        str: program.commands.map((item) => item.name()).join(' && '),
-      })
-    )
-  } else if (commandCount === 0) {
-    isReady.value = true
-    return
-  }
-  const subcommand = program.commands[0]
-  const subargs = subcommand.opts()
-  switch (subcommand.name()) {
-    case SubcommandEnum.GenVoMapper:
-      currentCommand.value = SubcommandEnum.GenVoMapper
-      genVoMapperArgs.value = subargs as GenVoMapperArgs
-      break
-    default:
-  }
-  if ((program.opts() as Args).nonInteractive) {
+  if (SubcommandEnum.None !== currentCommand.value) {
     isReady.value = true
   }
 }
@@ -93,10 +72,10 @@ async function configArgsFromUserChoise() {
       {
         name: 'subcommand',
         type: 'select',
-        message: t('question.message.subcommand'),
+        message: t('question.subcommand'),
         choices: [
           {
-            title: t('question.message.subcommand.generateVoMapper'),
+            title: t('question.subcommand.generateVoMapper'),
             value: SubcommandEnum.GenVoMapper,
           },
         ],
@@ -121,7 +100,7 @@ async function configGenVoMapperFromUserChoise() {
       {
         name: 'projectRoot',
         type: 'text',
-        message: t('question.message.projectRoot'),
+        message: t('question.projectRoot'),
         initial: `/${defaultPrefix}`,
         onState: (state) => {
           if (!isValidPath(state.value)) {
@@ -133,7 +112,7 @@ async function configGenVoMapperFromUserChoise() {
       {
         name: 'packageName',
         type: 'text',
-        message: t('question.message.packageName'),
+        message: t('question.packageName'),
         initial: 'com.github.alphafoxz.oneboot',
         onState: (state) => {
           if (!isValidPackageName(state.value)) {
@@ -147,15 +126,22 @@ async function configGenVoMapperFromUserChoise() {
   )
   genVoMapperArgs.value.projectRoot = projectRoot
 
+  if (!fs.existsSync(projectRoot) || !fs.statSync(projectRoot).isDirectory()) {
+    throw Error(t('error.badArgs'))
+  }
+  fs.existsSync(projectRoot)
+  fs.statSync(projectRoot)
+  fs.readdirSync(projectRoot)
+
   const { inputModule, outputModule } = await prompts(
     [
       {
         name: 'inputModule',
         type: 'select',
-        message: t('question.message.inputModule'),
+        message: t('question.inputModule'),
         choices: [
           {
-            title: t('question.message.subcommand.generateVoMapper'),
+            title: t('question.subcommand.generateVoMapper'),
             value: 'genVo',
           },
         ],
@@ -163,10 +149,10 @@ async function configGenVoMapperFromUserChoise() {
       {
         name: 'outputModule',
         type: 'select',
-        message: t('question.message.outputModule'),
+        message: t('question.outputModule'),
         choices: [
           {
-            title: t('question.message.subcommand.generateVoMapper'),
+            title: t('question.subcommand.generateVoMapper'),
             value: 'genVo',
           },
         ],

@@ -3,7 +3,7 @@ import * as parser from './utils/parser'
 import fs from 'node:fs'
 import path from 'node:path'
 import { java } from './utils/parser'
-import { StrUtil } from './utils/common'
+import { StrUtil, accumulate } from './utils/common'
 
 type OutputJavaFile = {
   filePath: string
@@ -42,7 +42,7 @@ export default async function () {
     map[matches[1]]!.push(currentValue)
     return map
   }, parseMap)
-  console.warn(JSON.stringify(parseMap, null, 2))
+  // console.warn(JSON.stringify(parseMap, null, 2))
   const genResult = genCode(param.projectRoot, param.packageName, param.outputModule, parseMap)
   writeFile(...genResult)
 }
@@ -92,11 +92,27 @@ function genCode(projectRoot: string, packageName: string, outputModule: string,
           return
         }
         const paras = record.formalParameters
-        if (paras.length !== 1) {
+
+        let valueField = undefined
+        let fieldIndex = 0
+        paras.forEach((p, i) => {
+          if (p.name === 'value') {
+            valueField = p
+            fieldIndex = i
+          }
+        })
+        const canbeMapped = !!valueField
+        if (!canbeMapped) {
           return
         }
+        const fieldsSize = paras.length
         voMapperCode.addImport(vo.package_declaration?.name! + '.' + vo.record_declaration[0].name)
-        voMapperCode.addMapping(record.name, { fieldType: paras[0].type, fieldName: paras[0].name })
+        voMapperCode.addMapping(record.name, {
+          fieldType: paras[0].type,
+          fieldName: paras[0].name,
+          fieldsSize,
+          fieldIndex,
+        })
       })
       vo.class_declaration.forEach((c) => {
         if (!c.name.endsWith('Vo')) {
@@ -123,12 +139,12 @@ function genCode(projectRoot: string, packageName: string, outputModule: string,
   })
   return files
 }
-
+type VoMapperInfo = { fieldType: string; fieldName: string; fieldsSize: number; fieldIndex: number }
 class VoMapperCode {
   packageName: string
   ClassName: string
   importPackages: Set<string> = new Set()
-  mappings: { [voName: string]: { fieldType: string; fieldName: string } } = {}
+  mappings: { [voName: string]: VoMapperInfo } = {}
   constructor(packageName: string, ClassName: string) {
     this.packageName = packageName
     this.ClassName = ClassName
@@ -139,7 +155,7 @@ class VoMapperCode {
   addImports(packageNames: string[]) {
     this.importPackages = new Set([...this.importPackages, ...packageNames])
   }
-  addMapping(voName: string, mapping: { fieldType: string; fieldName: string }) {
+  addMapping(voName: string, mapping: VoMapperInfo) {
     this.mappings[voName] = mapping
   }
   getCode(): string {
@@ -149,13 +165,21 @@ class VoMapperCode {
     })
     let mappingsCode = ''
     Object.keys(this.mappings).forEach((voName) => {
-      const { fieldType, fieldName } = this.mappings[voName]
+      const { fieldType, fieldName, fieldsSize, fieldIndex } = this.mappings[voName]
+      const args = accumulate([] as string[], fieldsSize, (accumulator, i) => {
+        if (i === fieldIndex) {
+          accumulator.push(`source`)
+        } else {
+          accumulator.push(`null`)
+        }
+        return accumulator
+      }).join(', ')
       mappingsCode += `    default ${fieldType} ${StrUtil.lowerFirst(fieldType)}To${voName}(${voName} source) {
         return source.${fieldName}();
     }
 
     default ${voName} ${StrUtil.lowerFirst(voName)}To${fieldType}(${fieldType} source) {
-        return new ${voName}(source);
+        return new ${voName}(${args});
     }
 
 `

@@ -1,6 +1,6 @@
 {
   "name": "@ddd-tool/create-oneboot",
-  "version": "0.0.1-alpha.1",
+  "version": "0.0.1-alpha.2",
   "private": false,
   "description": "",
   "type": "module",
@@ -14,7 +14,7 @@
     "node": ">=v18.3.0"
   },
   "scripts": {
-    "dev": "pnpm build && node ./bin/oneboot-tool.cjs --non-interactive genVoMapper --project-root=D:/idea-workspace/oneboot --input-module=domain-preset_sys --output-module=preset_sys",
+    "dev": "pnpm build && node ./bin/oneboot-tool.cjs genVoMapper --project-root=D:/idea-workspace/oneboot --input-module=domain-preset_sys --output-module=preset_sys",
     "build": "pnpm build-ts",
     "build-ts": "tsc --noEmit --esModuleInterop && zx ./scripts/build.mjs",
     "build-wasm": "wasm-pack build ./src-rust/ --target nodejs --out-dir ../pkg && ncp ./pkg/wasm_bg.wasm ./bin/wasm_bg.wasm",
