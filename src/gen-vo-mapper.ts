@@ -18,17 +18,17 @@ export default async function () {
   const param = argsStore.state.genVoMapperArgs.value
 
   //遍历文件夹
-  const parseResult = walkJavaFile(path.join(param.projectRoot, param.inputModule))
+  const parseResult = walkJavaFile(path.join(param.projectRoot, param.domainModule))
   let parseMap: ParseMap = {}
   parseMap = parseResult.reduce((map, currentValue) => {
     const regStr = `^${path.join(
       param.projectRoot,
-      param.inputModule,
+      param.domainModule,
       'src',
       'main',
       'java',
       param.packageName.replace(/\./g, path.sep),
-      param.inputModule.replace(/-/g, path.sep)
+      param.domainModule.replace(/-/g, path.sep)
     )}${path.sep}([a-zA-Z0-9_]+)${path.sep}vo.*$`
     const reg = new RegExp(regStr.replace(/\\/g, '/'))
     const matches = reg.exec(currentValue._filePath.replace(/\\/g, '/'))

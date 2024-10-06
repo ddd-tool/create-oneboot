@@ -7,7 +7,7 @@ export function onCancel() {
 }
 
 export function onError(str: string) {
-  throw Error(t('error.business', { str }))
+  throw Error(t('signal.{str}', { str }))
 }
 
 export function isValidPath(path: string): boolean {

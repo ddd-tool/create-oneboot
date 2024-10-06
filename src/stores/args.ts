@@ -17,7 +17,7 @@ type Args = {
 export type GenVoMapperArgs = {
   projectRoot: string
   packageName: string
-  inputModule: string
+  domainModule: string
   outputModule: string
 }
 
@@ -28,13 +28,13 @@ const genVoMapperCommand = new Command()
   .name('genVoMapper')
   .requiredOption('--project-root <path>', '项目根目录')
   .option('--package-name <name>', '项目根目录', 'com.github.alphafoxz.oneboot')
-  .requiredOption('--input-module <name>', '输入模块名')
+  .requiredOption('--domain-module <name>', '领域模块名')
   .requiredOption('--output-module <name>', '输出模块名')
   .action((options) => {
     currentCommand.value = SubcommandEnum.GenVoMapper
     genVoMapperArgs.value.projectRoot = options.projectRoot
     genVoMapperArgs.value.packageName = options.packageName
-    genVoMapperArgs.value.inputModule = options.inputModule
+    genVoMapperArgs.value.domainModule = options.domainModule
     genVoMapperArgs.value.outputModule = options.outputModule
   })
 const startCommand = new Command().name('start')
@@ -94,14 +94,14 @@ async function configArgsFromUserChoise() {
 }
 
 async function configGenVoMapperFromUserChoise() {
-  const defaultPrefix = path.basename(process.cwd()) || path.basename(__dirname)
+  const defaultProjectRoot = process.cwd() || __dirname
   const { projectRoot } = await prompts(
     [
       {
         name: 'projectRoot',
         type: 'text',
         message: t('question.projectRoot'),
-        initial: `/${defaultPrefix}`,
+        initial: `${defaultProjectRoot}`,
         onState: (state) => {
           if (!isValidPath(state.value)) {
             onError(t('error.badArgs'))
@@ -127,40 +127,33 @@ async function configGenVoMapperFromUserChoise() {
   genVoMapperArgs.value.projectRoot = projectRoot
 
   if (!fs.existsSync(projectRoot) || !fs.statSync(projectRoot).isDirectory()) {
-    throw Error(t('error.badArgs'))
+    onError(t('error.shouldBeValidDir{dir}', { dir: projectRoot }))
   }
-  fs.existsSync(projectRoot)
-  fs.statSync(projectRoot)
-  fs.readdirSync(projectRoot)
+  const projectChildren: { title: string; value: string }[] = []
+  fs.readdirSync(projectRoot).forEach((i) => {
+    if (!i.startsWith('.') && !i.startsWith('_') && fs.statSync(path.join(projectRoot, i)).isDirectory()) {
+      projectChildren.push({ title: i, value: i })
+    }
+  })
 
-  const { inputModule, outputModule } = await prompts(
+  const { domainModule, outputModule } = await prompts(
     [
       {
-        name: 'inputModule',
+        name: 'domainModule',
         type: 'select',
-        message: t('question.inputModule'),
-        choices: [
-          {
-            title: t('question.subcommand.generateVoMapper'),
-            value: 'genVo',
-          },
-        ],
+        message: t('question.domainModule'),
+        choices: projectChildren,
       },
       {
         name: 'outputModule',
         type: 'select',
         message: t('question.outputModule'),
-        choices: [
-          {
-            title: t('question.subcommand.generateVoMapper'),
-            value: 'genVo',
-          },
-        ],
+        choices: projectChildren,
       },
     ],
     { onCancel }
   )
-  genVoMapperArgs.value.inputModule = inputModule
+  genVoMapperArgs.value.domainModule = domainModule
   genVoMapperArgs.value.outputModule = outputModule
 }
 

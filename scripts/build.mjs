@@ -4,7 +4,7 @@ await esbuild.build({
   bundle: true,
   entryPoints: ['src/index.ts'],
   drop: ['debugger'],
-  minify: true,
+  // minify: true,
   outfile: 'bin/oneboot-tool.cjs',
   loader: {
     '.wasm': 'file',
