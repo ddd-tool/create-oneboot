@@ -3,7 +3,8 @@ import * as parser from './utils/parser'
 import fs from 'node:fs'
 import path from 'node:path'
 import { java } from './utils/parser'
-import { StrUtil, accumulate } from './utils/common'
+import * as StrUtil from './utils/str'
+import { accumulate } from './utils/fun'
 
 type OutputJavaFile = {
   filePath: string

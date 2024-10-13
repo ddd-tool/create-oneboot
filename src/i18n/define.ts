@@ -1,5 +1,5 @@
-export type LangType = 'zh' | 'en'
-export type DictType = {
+export type I18nLang = 'zh' | 'en'
+export type I18nDict = {
   'signal.scriptStart': string
   'signal.successComplete': string
   'signal.exitWithError': string

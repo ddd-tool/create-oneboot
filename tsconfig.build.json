@@ -3,8 +3,6 @@
   "include": [
     "src/*",
     "src/**/*",
-    "__test__/*",
-    "__test__/**/*"
   ],
   "compilerOptions": {
     "strict": true,
@@ -12,6 +10,7 @@
     "moduleResolution": "Bundler",
     "module": "ESNext",
     "target": "ESNext",
+    "noEmit": true,
     "esModuleInterop": true,
     "lib": [
       "DOM"

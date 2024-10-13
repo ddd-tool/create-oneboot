@@ -4,7 +4,7 @@ await esbuild.build({
   bundle: true,
   entryPoints: ['src/index.ts'],
   drop: ['debugger'],
-  // minify: true,
+  minify: true,
   outfile: 'bin/oneboot-tool.cjs',
   loader: {
     '.wasm': 'file',
@@ -15,5 +15,5 @@ await esbuild.build({
   platform: 'node',
   external: ['tree-sitter', 'tree-sitter-java'],
   plugins: [],
-  target: 'node16',
+  target: 'node18',
 })

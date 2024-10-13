@@ -16,11 +16,11 @@
   "scripts": {
     "dev": "pnpm build && node ./bin/oneboot-tool.cjs start",
     "dev2": "pnpm build && node ./bin/oneboot-tool.cjs genVoMapper --project-root=D:/idea-workspace/oneboot --domain-module=domain-preset_sys --output-module=preset_sys",
-    "build": "pnpm build-ts",
-    "build-ts": "tsc --noEmit --esModuleInterop && zx ./scripts/build.mjs",
-    "build-wasm": "wasm-pack build ./src-rust/ --target nodejs --out-dir ../pkg && ncp ./pkg/wasm_bg.wasm ./bin/wasm_bg.wasm",
-    "test": "npx jest",
-    "verify": "tsc src/index.ts --noEmit --esModuleInterop"
+    "build": "pnpm build:ts",
+    "build:ts": "pnpm verify && zx ./scripts/build.mjs",
+    "build:wasm": "wasm-pack build ./src-rust/ --target nodejs --out-dir ../pkg && ncp ./pkg/wasm_bg.wasm ./bin/wasm_bg.wasm",
+    "test": "pnpm verify && npx jest",
+    "verify": "tsc -p ./tsconfig.build.json"
   },
   "keywords": [
     "oneboot"

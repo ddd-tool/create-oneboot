@@ -1,20 +1,20 @@
-import { onCancel } from './utils/common'
+import './i18n'
+import { onCancel } from './utils/business'
 import { useArgs } from './stores/args'
-import lang from './lang'
 import execGenVoMapper from './gen-vo-mapper'
+import { t as $t } from './i18n'
 
-const t = lang.action.t
-console.info(t('signal.scriptStart'))
+console.info($t('signal.scriptStart'))
 
 const argsStore = useArgs()
 
 start()
   .then(() => {
-    console.info(t('signal.successComplete'))
+    console.info($t('signal.successComplete'))
   })
   .catch((e: Error) => {
     console.error(e.message)
-    console.error(t('signal.exitWithError'))
+    console.error($t('signal.exitWithError'))
   })
 
 process.on('SIGINT', onCancel)

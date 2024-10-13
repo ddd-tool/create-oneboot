@@ -90,7 +90,7 @@ export namespace java {
       if (child.type === Grammar.package_declaration) {
         result.package_declaration = parsePackageMeta(child, content)
       } else if (child.type === Grammar.import_declaration) {
-        result.import_declaration.push(findByGrammar(child, Grammar.scoped_identifier, content)!)
+        result.import_declaration.push(findFirstTextByGrammar(child, Grammar.scoped_identifier, content)!)
         // result.import_declaration.push(content.substring(child.startIndex, child.endIndex))
       } else if (child.type === Grammar.class_declaration) {
         result.class_declaration.push(parseClassMeta(child, content))
@@ -115,7 +115,7 @@ export namespace java {
   function parseClassMeta(node: SyntaxNode, content: string): ClassMeta {
     const result: ClassMeta = {
       grammar: Grammar.class_declaration,
-      name: findName(node, content),
+      name: findFirstTextByGrammar(node, Grammar.identifier, content),
       staticFields: [],
       fields: [],
     }
@@ -125,7 +125,7 @@ export namespace java {
   function parseInterfaceMeta(node: SyntaxNode, content: string): InterfaceMeta {
     const result: InterfaceMeta = {
       grammar: Grammar.interface_declaration,
-      name: findName(node, content),
+      name: findFirstTextByGrammar(node, Grammar.identifier, content),
       staticFields: [],
       fields: [],
     }
@@ -135,7 +135,7 @@ export namespace java {
   function parseRecordMeta(node: SyntaxNode, content: string): RecordMeta {
     const result: RecordMeta = {
       grammar: Grammar.record_declaration,
-      name: findName(node, content),
+      name: findFirstTextByGrammar(node, Grammar.identifier, content),
       formalParameters: [],
     }
     for (const child of node.children) {
@@ -161,29 +161,24 @@ export namespace java {
       }
       result.push({
         grammar: Grammar.formal_parameter,
-        // type: findName(e, content),
-        type: findByGrammar(e, Grammar.type_identifier, content)!,
-        name: findName(e, content),
+        type: findFirstTextByGrammar(e, Grammar.type_identifier, content)!,
+        name: findFirstTextByGrammar(e, Grammar.identifier, content)!,
       })
     })
     return result
   }
 
-  function findName(node: SyntaxNode, content: string): string {
-    for (const child of node.namedChildren) {
-      if (child.type === Grammar.identifier) {
-        return content.substring(child.startIndex, child.endIndex)
-      }
-    }
-    return ''
+  function findFirstTextByGrammar(node: SyntaxNode, grammar: Grammar, content: string): string {
+    const child = findFirstNodeByGrammar(node, grammar, content)
+    return content.substring(child.startIndex, child.endIndex)
   }
 
-  function findByGrammar(node: SyntaxNode, grammar: Grammar, content: string): string | null {
+  function findFirstNodeByGrammar(node: SyntaxNode, grammar: Grammar, content: string): SyntaxNode {
     for (const child of node.children) {
       if (child.type === grammar) {
-        return content.substring(child.startIndex, child.endIndex)
+        return child
       }
     }
-    return null
+    throw Error(`not found ${grammar} in ${content.substring(node.startIndex, node.endIndex)}`)
   }
 }

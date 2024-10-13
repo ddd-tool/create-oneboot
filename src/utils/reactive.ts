@@ -1,35 +1,55 @@
-type DataType = any | undefined | null
-interface ReactiveWrapperType<T extends DataType> {
+export interface ReactiveWrapperType<T> {
   value: T
-  hasInitialized: () => boolean
-  _initialized: boolean
-  _watchCallbacks: Function[]
+  readonly _listeners: Set<(newValue: T, oldValue: T) => void>
+  hadInitialized(): boolean
 }
+export type UnWatch = () => void
 
-export function ref<T>(v?: T | null): typeof data {
-  const data: ReactiveWrapperType<T> = {
-    value: v!,
-    hasInitialized: function () {
-      return this._initialized
+export function ref<T>(v: T): ReactiveWrapperType<T>
+export function ref<T = never>(): ReactiveWrapperType<T | undefined>
+export function ref<T>(v?: T): typeof data {
+  type RealType = typeof v extends undefined ? T | undefined : T
+  let _hadInitialized = v !== undefined
+  const data: ReactiveWrapperType<RealType> = {
+    value: v as RealType,
+    _listeners: new Set(),
+    hadInitialized(): boolean {
+      return _hadInitialized
     },
-    _initialized: v === undefined,
-    _watchCallbacks: [],
   }
   return new Proxy(data, {
-    get: (obj: any, k: any) => {
+    get: (obj: ReactiveWrapperType<RealType>, k: 'value') => {
       return obj[k]
     },
-    set: (obj: any, k: any, v: any) => {
-      obj[k] = v
-      for (const f of obj._watchCallbacks) {
-        f(obj[k], v)
+    set: (obj: ReactiveWrapperType<RealType>, k: 'value', v: RealType) => {
+      if (v === obj[k]) {
+        return true
+      } else if (!_hadInitialized && v !== undefined) {
+        _hadInitialized = true
       }
-      data._initialized = true
+      obj[k] = v
+      for (const f of obj._listeners) {
+        f(v, obj[k])
+      }
       return true
     },
   })
 }
 
-export function watch(reactiveVal: ReactiveWrapperType<any>, callback: Function) {
-  reactiveVal._watchCallbacks.push(callback)
+export function unRef<T>(reactiveVal: ReactiveWrapperType<T>) {
+  return reactiveVal.value
+}
+
+export function readonly<T>(reactiveVal: ReactiveWrapperType<T>) {
+  return {
+    get value() {
+      return reactiveVal.value
+    },
+  }
+}
+
+export function watch<T>(reactiveVal: ReactiveWrapperType<T>, onUpdate: (n: T, o: T) => void): UnWatch {
+  const listener = onUpdate
+  reactiveVal._listeners.add(listener)
+  return () => reactiveVal._listeners.delete(listener)
 }

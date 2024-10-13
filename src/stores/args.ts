@@ -1,17 +1,14 @@
 import { ref } from '../utils/reactive'
-import lang from '../lang'
 import path from 'node:path'
 import fs from 'node:fs'
 import prompts from 'prompts'
+import { t as $t, updateLang } from '../i18n'
 import { Command } from 'commander'
-import { onCancel, onError, isValidPath, isValidPackageName } from '../utils/common'
+import * as BusinessUtil from '../utils/business'
 
 export enum SubcommandEnum {
   GenVoMapper = 'genVoMapper',
   None = 'none',
-}
-type Args = {
-  nonInteractive: boolean
 }
 
 export type GenVoMapperArgs = {
@@ -21,7 +18,6 @@ export type GenVoMapperArgs = {
   outputModule: string
 }
 
-const t = lang.action.t
 const isReady = ref(false)
 
 const genVoMapperCommand = new Command()
@@ -63,25 +59,25 @@ async function configArgsFromUserChoise() {
         ],
       },
     ],
-    { onCancel }
+    { onCancel: BusinessUtil.onCancel }
   )
-  lang.action.updateLang(langurage)
+  updateLang(langurage)
 
   const { subcommand } = await prompts(
     [
       {
         name: 'subcommand',
         type: 'select',
-        message: t('question.subcommand'),
+        message: $t('question.subcommand'),
         choices: [
           {
-            title: t('question.subcommand.generateVoMapper'),
+            title: $t('question.subcommand.generateVoMapper'),
             value: SubcommandEnum.GenVoMapper,
           },
         ],
       },
     ],
-    { onCancel }
+    { onCancel: BusinessUtil.onCancel }
   )
   currentCommand.value = subcommand
 
@@ -100,11 +96,11 @@ async function configGenVoMapperFromUserChoise() {
       {
         name: 'projectRoot',
         type: 'text',
-        message: t('question.projectRoot'),
+        message: $t('question.projectRoot'),
         initial: `${defaultProjectRoot}`,
         onState: (state) => {
-          if (!isValidPath(state.value)) {
-            onError(t('error.badArgs'))
+          if (!BusinessUtil.isValidPath(state.value)) {
+            BusinessUtil.onError($t('error.badArgs'))
           }
           return state.value
         },
@@ -112,22 +108,22 @@ async function configGenVoMapperFromUserChoise() {
       {
         name: 'packageName',
         type: 'text',
-        message: t('question.packageName'),
+        message: $t('question.packageName'),
         initial: 'com.github.alphafoxz.oneboot',
         onState: (state) => {
-          if (!isValidPackageName(state.value)) {
+          if (!BusinessUtil.isValidPackageName(state.value)) {
             return ''
           }
           return state.value
         },
       },
     ],
-    { onCancel }
+    { onCancel: BusinessUtil.onCancel }
   )
   genVoMapperArgs.value.projectRoot = projectRoot
 
   if (!fs.existsSync(projectRoot) || !fs.statSync(projectRoot).isDirectory()) {
-    onError(t('error.shouldBeValidDir{dir}', { dir: projectRoot }))
+    BusinessUtil.onError($t('error.shouldBeValidDir{dir}', { dir: projectRoot }))
   }
   const projectChildren: { title: string; value: string }[] = []
   fs.readdirSync(projectRoot).forEach((i) => {
@@ -141,17 +137,17 @@ async function configGenVoMapperFromUserChoise() {
       {
         name: 'domainModule',
         type: 'select',
-        message: t('question.domainModule'),
+        message: $t('question.domainModule'),
         choices: projectChildren,
       },
       {
         name: 'outputModule',
         type: 'select',
-        message: t('question.outputModule'),
+        message: $t('question.outputModule'),
         choices: projectChildren,
       },
     ],
-    { onCancel }
+    { onCancel: BusinessUtil.onCancel }
   )
   genVoMapperArgs.value.domainModule = domainModule
   genVoMapperArgs.value.outputModule = outputModule

@@ -1,6 +1,5 @@
-// import { describe, it } from 'node:test'
 import { describe, it, expect } from '@jest/globals'
-import { java } from '../src/utils/parser'
+import { java } from '../../src/utils/parser'
 
 const code1 = `package com.github.alphafoxz.oneboot.domain.preset_sys.user.vo;
 
@@ -25,16 +24,14 @@ describe('java代码解析测试', () => {
       'F:/idea_projects/oneboot/domain-preset_sys/src/main/java/com/github/alphafoxz/oneboot/domain/preset_sys/user/vo/EmailVo.java',
       code1
     )
-    expect(result.record_declaration.length > 0).toBeTruthy()
+    expect(result.record_declaration[0].name).toEqual('EmailVo')
     const record = result.record_declaration[0]
-    expect(record.formalParameters.length === 1 && record.formalParameters[0].name === 'value').toBeTruthy()
+    expect(result.record_declaration[0].formalParameters.length).toEqual(1)
+    expect(record.formalParameters[0].name).toEqual('value')
   })
 
   it('解析导包', () => {
-    const result = java.parse(
-      'F:/idea_projects/oneboot/domain-preset_sys/src/main/java/com/github/alphafoxz/oneboot/OnebootApplication.java',
-      code1
-    )
+    const result = java.parse('D:/Demo.java', code1)
     expect(result.import_declaration).toEqual([
       'com.github.alphafoxz.oneboot.core.domain.DomainArgCheckException',
       'com.github.alphafoxz.oneboot.core.toolkit.coding.ReUtil',
