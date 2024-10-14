@@ -68,7 +68,7 @@ function walkJavaFile(parentPath: string, parseResult: parser.java.JavaFileMeta[
       continue
     }
     // 读取文件
-    const content = fs.readFileSync(filePath, 'utf-8')
+    const content = fs.readFileSync(filePath, 'utf8')
     parseResult.push(parser.java.parse(filePath, content))
   }
   return parseResult
@@ -200,6 +200,6 @@ function writeFile(...files: OutputJavaFile[]) {
     if (!fs.existsSync(file.filePath)) {
       fs.mkdirSync(path.dirname(file.filePath), { recursive: true })
     }
-    fs.writeFileSync(file.filePath, file.content)
+    fs.writeFileSync(file.filePath, file.content, 'utf8')
   }
 }
