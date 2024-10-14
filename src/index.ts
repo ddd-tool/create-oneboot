@@ -21,11 +21,12 @@ process.on('SIGINT', onCancel)
 
 async function start() {
   await argsStore.action.init()
-  switch (argsStore.state.currentCommand.value) {
-    case 'genVoMapper':
-      execGenVoMapper()
-      break
-    case 'none':
-      break
+  const subcommand = argsStore.state.currentCommand.value
+  if (subcommand === 'genVoMapper') {
+    await execGenVoMapper()
+  } else if (subcommand === 'none') {
+    return
+  } else {
+    isNever(subcommand)
   }
 }

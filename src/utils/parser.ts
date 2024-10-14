@@ -91,7 +91,6 @@ export namespace java {
         result.package_declaration = parsePackageMeta(child, content)
       } else if (child.type === Grammar.import_declaration) {
         result.import_declaration.push(findFirstTextByGrammar(child, Grammar.scoped_identifier, content)!)
-        // result.import_declaration.push(content.substring(child.startIndex, child.endIndex))
       } else if (child.type === Grammar.class_declaration) {
         result.class_declaration.push(parseClassMeta(child, content))
       } else if (child.type === Grammar.interface_declaration) {
