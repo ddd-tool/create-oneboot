@@ -4,7 +4,8 @@
     "src/*",
     "src/**/*",
     "__test__/*",
-    "__test__/**/*"
+    "__test__/**/*",
+    "scripts/*"
   ],
   "compilerOptions": {
     "strict": true,

@@ -3,6 +3,7 @@ import { onCancel } from './utils/business'
 import { useArgs } from './stores/args'
 import execGenVoMapper from './gen-vo-mapper'
 import { t as $t } from './i18n'
+import packageInfo from './utils/package-info'
 
 console.info($t('signal.scriptStart'))
 
@@ -20,6 +21,8 @@ start()
 process.on('SIGINT', onCancel)
 
 async function start() {
+  console.log(`repository addr: ${packageInfo.repository.url.replace(/git\+/g, '')}`)
+  console.log(`script version: ${packageInfo.version}`)
   await argsStore.action.init()
   const subcommand = argsStore.state.currentCommand.value
   if (subcommand === 'genVoMapper') {

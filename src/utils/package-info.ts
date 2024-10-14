@@ -1,4 +1,4 @@
-{
+export default {
   "name": "@ddd-tool/create-oneboot",
   "version": "0.0.1-alpha.6",
   "private": false,
@@ -29,7 +29,10 @@
     "name": "AlphaFoxz@github.com",
     "email": "841958335@qq.com"
   },
-  "repository": "https://github.com/AlphaFoxz/oneboot-tool",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AlphaFoxz/oneboot-tool.git"
+  },
   "license": "Apache-2.0",
   "dependencies": {
     "@vue/reactivity": "^3.5.12",
@@ -52,5 +55,11 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.6.2",
     "zx": "^8.1.8"
-  }
+  },
+  "bugs": {
+    "url": "https://github.com/AlphaFoxz/oneboot-tool/issues"
+  },
+  "readme": "ERROR: No README data found!",
+  "homepage": "https://github.com/AlphaFoxz/oneboot-tool#readme",
+  "_id": "@ddd-tool/create-oneboot@0.0.1-alpha.6"
 }
