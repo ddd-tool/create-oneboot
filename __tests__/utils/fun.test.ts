@@ -1,5 +1,5 @@
 import { describe, it, expect } from '@jest/globals'
-import { createTimeout } from '../../src/utils/fun'
+import { createTimeout, accumulate } from '../../src/utils/fun'
 
 describe('test funUtil', () => {
   it('test createTimeout1', async () => {
@@ -24,5 +24,12 @@ describe('test funUtil', () => {
       resolve.value()
     }, 3)
     await promise
+  })
+  it('test accumulate', () => {
+    let count = 0
+    count = accumulate(count, 5, (acc) => {
+      return ++acc
+    })
+    expect(count).toBe(5)
   })
 })

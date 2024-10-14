@@ -40,14 +40,6 @@ export function unRef<T>(reactiveVal: ReactiveWrapperType<T>) {
   return reactiveVal.value
 }
 
-export function readonly<T>(reactiveVal: ReactiveWrapperType<T>) {
-  return {
-    get value() {
-      return reactiveVal.value
-    },
-  }
-}
-
 export function watch<T>(reactiveVal: ReactiveWrapperType<T>, onUpdate: (n: T, o: T) => void): UnWatch {
   const listener = onUpdate
   reactiveVal._listeners.add(listener)

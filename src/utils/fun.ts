@@ -1,4 +1,4 @@
-import { ref } from './reactive'
+import { ref } from '@vue/reactivity'
 
 /**
  * Accumulate a value `times` times by calling `callback` with the previous

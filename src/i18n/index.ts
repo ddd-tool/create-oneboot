@@ -1,6 +1,6 @@
 import zhDict from './zh'
 import enDict from './en'
-import { ref } from '../utils/reactive'
+import { ref } from '@vue/reactivity'
 import type { I18nDict, I18nLang } from './define'
 
 const currentDict = ref(enDict)

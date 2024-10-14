@@ -1,4 +1,4 @@
-import { ref } from '../utils/reactive'
+import { readonly, ref } from '@vue/reactivity'
 import path from 'node:path'
 import fs from 'node:fs'
 import prompts from 'prompts'
@@ -34,8 +34,17 @@ const genVoMapperCommand = new Command()
     genVoMapperArgs.value.outputModule = options.outputModule
   })
 const startCommand = new Command().name('start')
-const program = new Command().name('oneboot-tool').addCommand(startCommand).addCommand(genVoMapperCommand)
+const program = new Command()
+  .name('oneboot-tool')
+  .option('--debug <bool>', '调试模式', false)
+  .action((options) => {
+    debugMode.value = options.debug
+  })
+  .addCommand(startCommand)
+  .addCommand(genVoMapperCommand)
+
 const currentCommand = ref(SubcommandEnum.None)
+const debugMode = ref(false)
 const genVoMapperArgs = ref<GenVoMapperArgs>({} as GenVoMapperArgs)
 
 function configArgsFromCommandLine() {
@@ -164,8 +173,9 @@ async function init() {
 export function useArgs() {
   return {
     state: {
-      currentCommand,
-      genVoMapperArgs,
+      currentCommand: readonly(currentCommand),
+      debugMode: readonly(debugMode),
+      genVoMapperArgs: readonly(genVoMapperArgs),
     },
     action: {
       init,
