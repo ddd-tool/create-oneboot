@@ -22,6 +22,7 @@ function esBuild() {
     drop: ['debugger'],
     minify: true,
     outfile: 'bin/oneboot-tool.cjs',
+    sourcemap: true,
     loader: {
       '.wasm': 'file',
     },
@@ -32,5 +33,6 @@ function esBuild() {
     external: ['tree-sitter', 'tree-sitter-java'],
     plugins: [],
     target: 'node18',
+    tsconfig: 'tsconfig.build.json',
   })
 }

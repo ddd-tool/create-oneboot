@@ -1,25 +1,27 @@
 import { readonly, ref } from '@vue/reactivity'
-import path from 'node:path'
-import fs from 'node:fs'
 import prompts from 'prompts'
-import { t as $t, updateLang } from '../i18n'
+import { t as $t, updateLang } from '@/i18n'
 import { Command } from 'commander'
-import * as BusinessUtil from '../utils/business'
+import * as BusinessUtil from '@/utils/business'
+import { configGenVoMapperFromUserChoise } from '@/commands/gen-vo-mapper/configure'
 
 export enum SubcommandEnum {
   GenVoMapper = 'genVoMapper',
   None = 'none',
 }
 
+const isReady = ref(false)
+const currentCommand = ref(SubcommandEnum.None)
+const debugMode = ref(false)
+
+// ===================== 生成 vo mapper 命令 =====================
 export type GenVoMapperArgs = {
   projectRoot: string
   packageName: string
   domainModule: string
   outputModule: string
 }
-
-const isReady = ref(false)
-
+const genVoMapperArgs = ref<GenVoMapperArgs>({} as GenVoMapperArgs)
 const genVoMapperCommand = new Command()
   .name('genVoMapper')
   .requiredOption('--project-root <path>', '项目根目录')
@@ -33,6 +35,8 @@ const genVoMapperCommand = new Command()
     genVoMapperArgs.value.domainModule = options.domainModule
     genVoMapperArgs.value.outputModule = options.outputModule
   })
+
+// ===================== 配置参数 =====================
 const startCommand = new Command().name('start')
 const program = new Command()
   .name('oneboot-tool')
@@ -42,10 +46,7 @@ const program = new Command()
   })
   .addCommand(startCommand)
   .addCommand(genVoMapperCommand)
-
-const currentCommand = ref(SubcommandEnum.None)
-const debugMode = ref(false)
-const genVoMapperArgs = ref<GenVoMapperArgs>({} as GenVoMapperArgs)
+// .addCommand(genTableMapperCommand)
 
 function configArgsFromCommandLine() {
   program.parse(process.argv)
@@ -55,6 +56,14 @@ function configArgsFromCommandLine() {
 }
 configArgsFromCommandLine()
 
+// ===================== 初始化 =====================
+async function init() {
+  if (isReady.value) {
+    return
+  }
+  await configArgsFromUserChoise()
+  isReady.value = true
+}
 async function configArgsFromUserChoise() {
   const { langurage } = await prompts(
     [
@@ -72,7 +81,7 @@ async function configArgsFromUserChoise() {
   )
   updateLang(langurage)
 
-  const { subcommand } = await prompts(
+  const result = await prompts(
     [
       {
         name: 'subcommand',
@@ -88,97 +97,30 @@ async function configArgsFromUserChoise() {
     ],
     { onCancel: BusinessUtil.onCancel }
   )
+
+  const subcommand = result.subcommand as SubcommandEnum
   currentCommand.value = subcommand
 
-  switch (subcommand) {
-    case SubcommandEnum.GenVoMapper:
-      await configGenVoMapperFromUserChoise()
-      break
-    default:
+  if (subcommand === SubcommandEnum.GenVoMapper) {
+    genVoMapperArgs.value = await configGenVoMapperFromUserChoise()
+  } else if (subcommand === SubcommandEnum.None) {
+  } else {
+    isNever(subcommand)
   }
 }
 
-async function configGenVoMapperFromUserChoise() {
-  const defaultProjectRoot = process.cwd() || __dirname
-  const { projectRoot } = await prompts(
-    [
-      {
-        name: 'projectRoot',
-        type: 'text',
-        message: $t('question.projectRoot'),
-        initial: `${defaultProjectRoot}`,
-        onState: (state) => {
-          if (!BusinessUtil.isValidPath(state.value)) {
-            BusinessUtil.onError($t('error.badArgs'))
-          }
-          return state.value
-        },
-      },
-      {
-        name: 'packageName',
-        type: 'text',
-        message: $t('question.packageName'),
-        initial: 'com.github.alphafoxz.oneboot',
-        onState: (state) => {
-          if (!BusinessUtil.isValidPackageName(state.value)) {
-            return ''
-          }
-          return state.value
-        },
-      },
-    ],
-    { onCancel: BusinessUtil.onCancel }
-  )
-  genVoMapperArgs.value.projectRoot = projectRoot
-
-  if (!fs.existsSync(projectRoot) || !fs.statSync(projectRoot).isDirectory()) {
-    BusinessUtil.onError($t('error.shouldBeValidDir{dir}', { dir: projectRoot }))
-  }
-  const projectChildren: { title: string; value: string }[] = []
-  fs.readdirSync(projectRoot).forEach((i) => {
-    if (!i.startsWith('.') && !i.startsWith('_') && fs.statSync(path.join(projectRoot, i)).isDirectory()) {
-      projectChildren.push({ title: i, value: i })
-    }
-  })
-
-  const { domainModule, outputModule } = await prompts(
-    [
-      {
-        name: 'domainModule',
-        type: 'select',
-        message: $t('question.domainModule'),
-        choices: projectChildren,
-      },
-      {
-        name: 'outputModule',
-        type: 'select',
-        message: $t('question.outputModule'),
-        choices: projectChildren,
-      },
-    ],
-    { onCancel: BusinessUtil.onCancel }
-  )
-  genVoMapperArgs.value.domainModule = domainModule
-  genVoMapperArgs.value.outputModule = outputModule
+// ==================== 导出api =====================
+const api = {
+  state: {
+    currentCommand: readonly(currentCommand),
+    debugMode: readonly(debugMode),
+    genVoMapperArgs: readonly(genVoMapperArgs),
+  },
+  action: {
+    init,
+  },
 }
 
-async function init() {
-  if (isReady.value) {
-    return
-  }
-  await configArgsFromUserChoise()
-  isReady.value = true
-}
-
-export function useArgs() {
-  return {
-    state: {
-      currentCommand: readonly(currentCommand),
-      debugMode: readonly(debugMode),
-      genVoMapperArgs: readonly(genVoMapperArgs),
-    },
-    action: {
-      init,
-    },
-  }
+export function useArgsStore() {
+  return api
 }

@@ -1,6 +1,6 @@
 export default {
   "name": "@ddd-tool/create-oneboot",
-  "version": "0.0.1-alpha.6",
+  "version": "0.0.1-alpha.7",
   "private": false,
   "description": "",
   "type": "module",
@@ -61,5 +61,5 @@ export default {
   },
   "readme": "ERROR: No README data found!",
   "homepage": "https://github.com/AlphaFoxz/oneboot-tool#readme",
-  "_id": "@ddd-tool/create-oneboot@0.0.1-alpha.6"
+  "_id": "@ddd-tool/create-oneboot@0.0.1-alpha.7"
 }

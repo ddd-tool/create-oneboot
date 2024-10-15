@@ -1,4 +1,4 @@
-import { t as $t } from '../i18n'
+import { t as $t } from '@/i18n'
 
 export function onCancel() {
   throw Error($t('error.userCancel'))

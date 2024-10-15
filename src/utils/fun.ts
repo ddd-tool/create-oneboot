@@ -1,13 +1,5 @@
 import { ref } from '@vue/reactivity'
 
-/**
- * Accumulate a value `times` times by calling `callback` with the previous
- * accumulator and the current index. The return value is the final
- * accumulator.
- * @example
- * const result = accumulate(0, 3, (acc, index) => acc + index)
- * // result is 3
- */
 export function accumulate<T>(accumulator: T, times: number, callback: (accumulator: T, index: number) => T): T {
   Array.from({ length: times }).forEach((_, index) => {
     accumulator = callback(accumulator, index)
@@ -29,7 +21,7 @@ export function createTimeout(timeoutMs: number, timeoutError = new Error('timeo
     clearTimeout(timeout!)
     timeout = null
   })
-  let reject = ref((e: Error) => {})
+  let reject = ref((_: Error) => {})
   const reset = (ms: number = timeoutMs) => {
     if (!timeout) {
       return

@@ -1,40 +1,51 @@
-import { useArgs } from './stores/args'
-import * as parser from './utils/parser'
-import fs from 'node:fs'
+import { useArgsStore } from '@/stores/args'
+import * as parser from '@/utils/parser'
 import path from 'node:path'
-import { java } from './utils/parser'
-import * as StrUtil from './utils/str'
-import { accumulate } from './utils/fun'
+import fs from 'node:fs'
+import * as StrUtil from '@/utils/str'
+import { accumulate } from '@/utils/fun'
+import { type FileInfo, writeCodeFile, recursiveFilePath } from '@/utils/io'
+export * from './configure'
 
-type OutputJavaFile = {
-  filePath: string
-  content: string
-}
-type ParseMap = { [moduleName: string]: java.JavaFileMeta[] }
+type ParseMap = { [moduleName: string]: parser.java.JavaFileMeta[] }
 
-const argsStore = useArgs()
+const argsStore = useArgsStore()
 
-export default async function () {
+export async function execGenVoMapper() {
   await argsStore.action.init()
   const param = argsStore.state.genVoMapperArgs.value
+  const voPathReg = new RegExp(
+    (
+      '^' +
+      path.join(
+        param.projectRoot,
+        param.domainModule,
+        'src',
+        'main',
+        'java',
+        param.packageName.replace(/\./g, path.sep),
+        param.domainModule.replace(/-/g, path.sep),
+        '([a-zA-Z0-9_]+)',
+        'vo.*'
+      ) +
+      '$'
+    ).replace(/\\/g, '/')
+  )
 
   //遍历文件夹
-  const parseResult = walkJavaFile(path.join(param.projectRoot, param.domainModule))
+  const parseResult: parser.java.JavaFileMeta[] = []
+  recursiveFilePath(path.join(param.projectRoot, param.domainModule), (path) => {
+    if (!path.endsWith('.java') || !voPathReg.test(path)) {
+      return
+    }
+    const content = fs.readFileSync(path, 'utf8')
+    parseResult.push(parser.java.parse(path, content))
+  })
   let parseMap: ParseMap = {}
   parseMap = parseResult.reduce((map, currentValue) => {
-    const regStr = `^${path.join(
-      param.projectRoot,
-      param.domainModule,
-      'src',
-      'main',
-      'java',
-      param.packageName.replace(/\./g, path.sep),
-      param.domainModule.replace(/-/g, path.sep)
-    )}${path.sep}([a-zA-Z0-9_]+)${path.sep}vo.*$`
-    const reg = new RegExp(regStr.replace(/\\/g, '/'))
-    const matches = reg.exec(currentValue._filePath.replace(/\\/g, '/'))
+    const matches = voPathReg.exec(currentValue._filePath.replace(/\\/g, '/'))
     if (!matches) {
-      console.warn('匹配失败', currentValue._filePath.replace(/\\/g, '/'), reg)
+      console.warn('匹配失败', currentValue._filePath.replace(/\\/g, '/'), voPathReg)
       return map
     }
     if (!map[matches[1]]) {
@@ -43,39 +54,12 @@ export default async function () {
     map[matches[1]]!.push(currentValue)
     return map
   }, parseMap)
-  // console.warn(JSON.stringify(parseMap, null, 2))
   const genResult = genCode(param.projectRoot, param.packageName, param.outputModule, parseMap)
-  writeFile(...genResult)
+  writeCodeFile(...genResult)
 }
 
-/**
- * 递归遍历java文件
- */
-function walkJavaFile(parentPath: string, parseResult: parser.java.JavaFileMeta[] = []): parser.java.JavaFileMeta[] {
-  // 读取文件
-  const files = fs.readdirSync(parentPath)
-  // 遍历文件
-  for (const file of files) {
-    const filePath = path.join(parentPath, file)
-    // 判断是否为文件夹
-    if (fs.statSync(filePath).isDirectory()) {
-      // 递归调用
-      parseResult = walkJavaFile(filePath, parseResult)
-      continue
-    }
-    // 判断是否为java文件
-    if (!filePath.endsWith('Vo.java')) {
-      continue
-    }
-    // 读取文件
-    const content = fs.readFileSync(filePath, 'utf8')
-    parseResult.push(parser.java.parse(filePath, content))
-  }
-  return parseResult
-}
-
-function genCode(projectRoot: string, packageName: string, outputModule: string, parseMap: ParseMap): OutputJavaFile[] {
-  const files: OutputJavaFile[] = []
+function genCode(projectRoot: string, packageName: string, outputModule: string, parseMap: ParseMap): FileInfo[] {
+  const files: FileInfo[] = []
   Object.keys(parseMap).forEach((key) => {
     const vos = parseMap[key]
     const voMapperCode = new VoMapperCode(
@@ -89,9 +73,6 @@ function genCode(projectRoot: string, packageName: string, outputModule: string,
         }
       })
       vo.record_declaration.forEach((record) => {
-        if (!record.name.endsWith('Vo')) {
-          return
-        }
         const paras = record.formalParameters
 
         let valueField = undefined
@@ -119,7 +100,7 @@ function genCode(projectRoot: string, packageName: string, outputModule: string,
         if (!c.name.endsWith('Vo')) {
           return
         }
-        // TODO 兼容class的值对象
+        // TODO: 兼容class的值对象
       })
     }
     files.push({
@@ -192,14 +173,5 @@ public interface ${this.ClassName} {
 ${mappingsCode}
 }
 `
-  }
-}
-
-function writeFile(...files: OutputJavaFile[]) {
-  for (const file of files) {
-    if (!fs.existsSync(file.filePath)) {
-      fs.mkdirSync(path.dirname(file.filePath), { recursive: true })
-    }
-    fs.writeFileSync(file.filePath, file.content, 'utf8')
   }
 }
