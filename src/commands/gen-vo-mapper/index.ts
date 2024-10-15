@@ -10,26 +10,28 @@ export * from './configure'
 type ParseMap = { [moduleName: string]: parser.java.JavaFileMeta[] }
 
 const argsStore = useArgsStore()
+const VALUE_FIELD_PREFIX = '$'
 
 export async function execGenVoMapper() {
   await argsStore.action.init()
   const param = argsStore.state.genVoMapperArgs.value
   const voPathReg = new RegExp(
-    (
-      '^' +
-      path.join(
-        param.projectRoot,
-        param.domainModule,
-        'src',
-        'main',
-        'java',
-        param.packageName.replace(/\./g, path.sep),
-        param.domainModule.replace(/-/g, path.sep),
-        '([a-zA-Z0-9_]+)',
-        'vo.*'
-      ) +
+    '^' +
+      path
+        .join(
+          param.projectRoot,
+          param.domainModule,
+          'src',
+          'main',
+          'java',
+          param.packageName.replace(/\./g, path.sep),
+          param.domainModule.replace(/-/g, path.sep),
+          '([a-zA-Z0-9_]+)',
+          'vo',
+          '.*'
+        )
+        .replace(/\\/g, '\\\\') +
       '$'
-    ).replace(/\\/g, '/')
   )
 
   //遍历文件夹
@@ -41,19 +43,19 @@ export async function execGenVoMapper() {
     const content = fs.readFileSync(path, 'utf8')
     parseResult.push(parser.java.parse(path, content))
   })
-  let parseMap: ParseMap = {}
-  parseMap = parseResult.reduce((map, currentValue) => {
-    const matches = voPathReg.exec(currentValue._filePath.replace(/\\/g, '/'))
+  let parseMap = parseResult.reduce((map, currentValue) => {
+    const matches = voPathReg.exec(currentValue._filePath)
     if (!matches) {
-      console.warn('匹配失败', currentValue._filePath.replace(/\\/g, '/'), voPathReg)
+      console.warn('匹配失败', voPathReg, currentValue._filePath)
       return map
     }
-    if (!map[matches[1]]) {
-      map[matches[1]] = []
+    const module = matches[1]
+    if (!map[module]) {
+      map[module] = []
     }
-    map[matches[1]]!.push(currentValue)
+    map[module]!.push(currentValue)
     return map
-  }, parseMap)
+  }, {} as ParseMap)
   const genResult = genCode(param.projectRoot, param.packageName, param.outputModule, parseMap)
   writeCodeFile(...genResult)
 }
@@ -77,14 +79,19 @@ function genCode(projectRoot: string, packageName: string, outputModule: string,
 
         let valueField = undefined
         let fieldIndex = 0
-        paras.forEach((p, i) => {
-          if (p.name === 'value') {
-            valueField = p
-            fieldIndex = i
-          }
-        })
-        const canbeMapped = !!valueField
-        if (!canbeMapped) {
+        if (paras.length === 1) {
+          valueField = paras[0]
+          fieldIndex = 0
+        } else {
+          paras.forEach((p, i) => {
+            if (p.name.startsWith(VALUE_FIELD_PREFIX)) {
+              valueField = p
+              fieldIndex = i
+            }
+          })
+        }
+        if (!valueField) {
+          // TODO: 这里提前返回了，应该考虑复杂的对象映射情况
           return
         }
         const fieldsSize = paras.length
@@ -160,10 +167,9 @@ class VoMapperCode {
         return source.${fieldName}();
     }
 
-    default ${voName} ${StrUtil.lowerFirst(voName)}To${fieldType}(${fieldType} source) {
+    default public ${voName} ${StrUtil.lowerFirst(voName)}To${fieldType}(${fieldType} source) {
         return new ${voName}(${args});
     }
-
 `
     })
     return `package ${this.packageName};

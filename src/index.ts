@@ -13,7 +13,7 @@ start()
     console.info($t('signal.successComplete'))
   })
   .catch((e: Error) => {
-    console.error(e.message)
+    console.error(e)
     console.error($t('signal.exitWithError'))
   })
 

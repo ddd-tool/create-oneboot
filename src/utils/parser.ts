@@ -161,7 +161,7 @@ export namespace java {
       }
       result.push({
         grammar: Grammar.formal_parameter,
-        type: findFirstTextByGrammars(e, [Grammar.type_identifier, Grammar.generic_type], content),
+        type: findFirstTextByGrammars(e, [Grammar.type_identifier, Grammar.identifier, Grammar.generic_type], content),
         name: findFirstTextByGrammar(e, Grammar.identifier, content),
       })
     })

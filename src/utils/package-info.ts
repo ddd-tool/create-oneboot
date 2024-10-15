@@ -1,6 +1,6 @@
 export default {
   "name": "@ddd-tool/create-oneboot",
-  "version": "0.0.1-alpha.7",
+  "version": "0.0.1-alpha.8",
   "private": false,
   "description": "",
   "type": "module",
@@ -43,7 +43,7 @@ export default {
     "@jest/globals": "^29.7.0",
     "@tsconfig/node20": "^20.1.4",
     "@types/jest": "^29.5.13",
-    "@types/node": "^22.7.4",
+    "@types/node": "^22.7.5",
     "@types/prompts": "^2.4.9",
     "commander": "^12.1.0",
     "esbuild": "^0.23.1",
@@ -53,13 +53,13 @@ export default {
     "read-pkg": "^9.0.1",
     "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
-    "typescript": "^5.6.2",
-    "zx": "^8.1.8"
+    "typescript": "^5.6.3",
+    "zx": "^8.1.9"
   },
   "bugs": {
     "url": "https://github.com/AlphaFoxz/oneboot-tool/issues"
   },
   "readme": "ERROR: No README data found!",
   "homepage": "https://github.com/AlphaFoxz/oneboot-tool#readme",
-  "_id": "@ddd-tool/create-oneboot@0.0.1-alpha.7"
+  "_id": "@ddd-tool/create-oneboot@0.0.1-alpha.8"
 }

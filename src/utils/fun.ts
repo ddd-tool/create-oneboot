@@ -7,10 +7,6 @@ export function accumulate<T>(accumulator: T, times: number, callback: (accumula
   return accumulator
 }
 
-export function tuple<T extends any[]>(...args: T) {
-  return Object.freeze(args)
-}
-
 export function createTimeout(timeoutMs: number, timeoutError = new Error('timeout!')): typeof api {
   let timeout: undefined | null | ReturnType<typeof setTimeout> = undefined
   let resolve = ref(() => {
