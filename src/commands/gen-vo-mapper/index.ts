@@ -1,52 +1,53 @@
-import { useArgsStore } from '@/stores/args'
-import * as parser from '@/utils/parser'
 import path from 'node:path'
 import fs from 'node:fs'
+import { useArgsStore } from '@/stores/args'
+import * as parser from '@/utils/parser'
 import * as StrUtil from '@/utils/str'
 import { accumulate } from '@/utils/fun'
 import { type FileInfo, writeCodeFile, recursiveFilePath } from '@/utils/io'
+import { type ParseMap, useGenVoMapperStore, isTransient } from '@/stores/gen-vo-mapper'
 export * from './configure'
 
-type ParseMap = { [moduleName: string]: parser.java.JavaFileMeta[] }
-
 const argsStore = useArgsStore()
-const VALUE_FIELD_PREFIX = '$'
+const store = useGenVoMapperStore()
 
 export async function execGenVoMapper() {
   await argsStore.action.init()
   const param = argsStore.state.genVoMapperArgs.value
-  const voPathReg = new RegExp(
-    '^' +
-      path
-        .join(
-          param.projectRoot,
-          param.domainModule,
-          'src',
-          'main',
-          'java',
-          param.packageName.replace(/\./g, path.sep),
-          param.domainModule.replace(/-/g, path.sep),
-          '([a-zA-Z0-9_]+)',
-          'vo',
-          '.*'
-        )
-        .replace(/\\/g, '\\\\') +
-      '$'
+  store.action.setVoPathRegex(
+    new RegExp(
+      '^' +
+        path
+          .join(
+            param.projectRoot,
+            param.domainModule,
+            'src',
+            'main',
+            'java',
+            param.packageName.replace(/\./g, path.sep),
+            param.domainModule.replace(/-/g, path.sep),
+            '([a-zA-Z0-9_]+)',
+            'vo',
+            '.*'
+          )
+          .replace(/\\/g, '\\\\') +
+        '$'
+    )
   )
 
   //遍历文件夹
   const parseResult: parser.java.JavaFileMeta[] = []
   recursiveFilePath(path.join(param.projectRoot, param.domainModule), (path) => {
-    if (!path.endsWith('.java') || !voPathReg.test(path)) {
+    if (!path.endsWith('.java') || !store.state.voPathRegex.value!.test(path)) {
       return
     }
     const content = fs.readFileSync(path, 'utf8')
     parseResult.push(parser.java.parse(path, content))
   })
   let parseMap = parseResult.reduce((map, currentValue) => {
-    const matches = voPathReg.exec(currentValue._filePath)
+    const matches = store.state.voPathRegex.value!.exec(currentValue._filePath)
     if (!matches) {
-      console.warn('匹配失败', voPathReg, currentValue._filePath)
+      console.warn('匹配失败', store.state.voPathRegex.value!, currentValue._filePath)
       return map
     }
     const module = matches[1]
@@ -84,7 +85,7 @@ function genCode(projectRoot: string, packageName: string, outputModule: string,
           fieldIndex = 0
         } else {
           paras.forEach((p, i) => {
-            if (p.name.startsWith(VALUE_FIELD_PREFIX)) {
+            if (!isTransient(p.name)) {
               valueField = p
               fieldIndex = i
             }
@@ -103,10 +104,7 @@ function genCode(projectRoot: string, packageName: string, outputModule: string,
           fieldIndex,
         })
       })
-      vo.class_declaration.forEach((c) => {
-        if (!c.name.endsWith('Vo')) {
-          return
-        }
+      vo.class_declaration.forEach(() => {
         // TODO: 兼容class的值对象
       })
     }
@@ -167,7 +165,7 @@ class VoMapperCode {
         return source.${fieldName}();
     }
 
-    default public ${voName} ${StrUtil.lowerFirst(voName)}To${fieldType}(${fieldType} source) {
+    default ${voName} ${StrUtil.lowerFirst(voName)}To${fieldType}(${fieldType} source) {
         return new ${voName}(${args});
     }
 `
