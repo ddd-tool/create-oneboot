@@ -11,6 +11,8 @@ function writeEnvFile() {
   const targetFilePath = path.join(__dirname, '..', 'src', 'utils', 'package-info.ts')
   if (!fs.existsSync(targetFilePath)) {
     throw new Error(`${targetFilePath} not found`)
+  } else if (!fs.statSync(targetFilePath).isFile()) {
+    throw new Error(`${targetFilePath} is not a file`)
   }
   fs.writeFileSync(targetFilePath, `export default ${JSON.stringify(packageInfo, null, 2)}`, 'utf-8')
 }
@@ -21,7 +23,7 @@ function esBuild() {
     entryPoints: ['src/index.ts'],
     drop: ['debugger'],
     minify: true,
-    outfile: 'bin/oneboot-tool.cjs',
+    outfile: 'bin/create-oneboot.cjs',
     sourcemap: true,
     loader: {
       '.wasm': 'file',

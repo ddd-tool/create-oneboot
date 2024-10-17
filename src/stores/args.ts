@@ -4,6 +4,7 @@ import { t as $t, updateLang } from '@/i18n'
 import { Command } from 'commander'
 import * as BusinessUtil from '@/utils/business'
 import { configGenVoMapperFromUserChoise } from '@/commands/gen-vo-mapper/configure'
+import { defineApi } from 'vue-fn/store'
 
 // ======================= 纯函数 =======================
 export enum SubcommandEnum {
@@ -110,16 +111,16 @@ namespace data {
       isNever(subcommand)
     }
   }
-  export const api = {
+  export const api = defineApi({
     state: {
-      currentCommand: readonly(currentCommand),
-      debugMode: readonly(debugMode),
-      genVoMapperArgs: readonly(genVoMapperArgs),
+      currentCommand,
+      debugMode,
+      genVoMapperArgs,
     },
     action: {
       init,
     },
-  }
+  })
 }
 
 // ==================== 导出api =====================
