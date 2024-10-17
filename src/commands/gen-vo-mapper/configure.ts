@@ -2,8 +2,10 @@ import fs from 'node:fs'
 import path from 'node:path'
 import prompts from 'prompts'
 import * as BusinessUtil from '@/utils/business'
-import { t as $t } from '@/i18n'
+import { useI18nStore } from '@/stores/i18n'
 import type { GenVoMapperArgs } from '@/stores/args'
+
+const $t = useI18nStore().action.t
 
 export async function configGenVoMapperFromUserChoise(): Promise<GenVoMapperArgs> {
   const defaultProjectRoot = process.cwd() || __dirname

@@ -1,8 +1,10 @@
 import { onCancel } from '@/utils/business'
 import { useArgsStore } from '@/stores/args'
 import { execGenVoMapper } from '@/commands/gen-vo-mapper'
-import { t as $t } from '@/i18n'
+import { useI18nStore } from '@/stores/i18n'
 import packageInfo from '@/utils/package-info'
+
+const $t = useI18nStore().action.t
 
 console.info($t('signal.scriptStart'))
 

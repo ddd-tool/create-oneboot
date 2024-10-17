@@ -1,6 +1,6 @@
-import type { I18nDict } from './define'
+import type { Messages } from '../define'
 
-const zhDict: I18nDict = {
+const zhDict: Messages = {
   'signal.{str}': '错误: {str}',
   'signal.scriptStart': '===== 脚本开始执行 =====',
   'signal.successComplete': '===== 脚本执行成功 =====',

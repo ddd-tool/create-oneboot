@@ -1,5 +1,4 @@
-export type I18nLang = 'zh' | 'en'
-export type I18nDict = {
+export type Messages = {
   'signal.scriptStart': string
   'signal.successComplete': string
   'signal.exitWithError': string

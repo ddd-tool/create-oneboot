@@ -1,10 +1,13 @@
 import { ref } from '@vue/reactivity'
 import prompts from 'prompts'
-import { t as $t, updateLang } from '@/i18n'
+import { useI18nStore } from '@/stores/i18n'
 import { Command } from 'commander'
 import * as BusinessUtil from '@/utils/business'
 import { configGenVoMapperFromUserChoise } from '@/commands/gen-vo-mapper/configure'
 import { createApi } from 'vue-fn/store'
+
+const $t = useI18nStore().action.t
+const setCurrentLang = useI18nStore().action.setCurrentLang
 
 // ======================= 纯函数 =======================
 export enum SubcommandEnum {
@@ -82,7 +85,7 @@ namespace data {
       ],
       { onCancel: BusinessUtil.onCancel }
     )
-    updateLang(langurage)
+    setCurrentLang(langurage)
 
     const result = await prompts(
       [
