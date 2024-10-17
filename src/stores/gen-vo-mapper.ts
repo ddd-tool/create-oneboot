@@ -1,6 +1,6 @@
 import * as parser from '@/utils/parser'
-import { ref, readonly } from '@vue/reactivity'
-import { defineApi } from 'vue-fn/store'
+import { ref } from '@vue/reactivity'
+import { createApi } from 'vue-fn/store'
 
 export type ParseMap = { [moduleName: string]: parser.java.JavaFileMeta[] }
 export type InitParam = {}
@@ -14,7 +14,7 @@ export function isTransient(fieldName: string) {
 namespace data {
   const voPathRegex = ref<RegExp>()
 
-  export const api = defineApi({
+  export const api = createApi({
     state: {
       voPathRegex,
     },

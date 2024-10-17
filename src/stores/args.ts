@@ -1,10 +1,10 @@
-import { readonly, ref } from '@vue/reactivity'
+import { ref } from '@vue/reactivity'
 import prompts from 'prompts'
 import { t as $t, updateLang } from '@/i18n'
 import { Command } from 'commander'
 import * as BusinessUtil from '@/utils/business'
 import { configGenVoMapperFromUserChoise } from '@/commands/gen-vo-mapper/configure'
-import { defineApi } from 'vue-fn/store'
+import { createApi } from 'vue-fn/store'
 
 // ======================= 纯函数 =======================
 export enum SubcommandEnum {
@@ -111,7 +111,7 @@ namespace data {
       isNever(subcommand)
     }
   }
-  export const api = defineApi({
+  export const api = createApi({
     state: {
       currentCommand,
       debugMode,

@@ -39,7 +39,7 @@
     "@jest/globals": "^29.7.0",
     "@tsconfig/node20": "^20.1.4",
     "@types/jest": "^29.5.13",
-    "@types/node": "^22.7.5",
+    "@types/node": "^22.7.6",
     "@types/prompts": "^2.4.9",
     "@vue/reactivity": "^3.5.12",
     "commander": "^12.1.0",
@@ -51,7 +51,7 @@
     "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
     "typescript": "^5.6.3",
-    "vue-fn": "^0.0.2",
+    "vue-fn": "latest",
     "zx": "^8.1.9"
   }
 }

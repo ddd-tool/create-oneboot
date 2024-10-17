@@ -14,6 +14,8 @@ function writeEnvFile() {
   } else if (!fs.statSync(targetFilePath).isFile()) {
     throw new Error(`${targetFilePath} is not a file`)
   }
+  delete packageInfo.scripts
+  delete packageInfo.devDependencies
   fs.writeFileSync(targetFilePath, `export default ${JSON.stringify(packageInfo, null, 2)}`, 'utf-8')
 }
 
