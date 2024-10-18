@@ -62,7 +62,7 @@ importers:
         version: 5.6.3
       vue-fn:
         specifier: latest
-        version: 0.0.3-alpha.0(vue@3.5.12(typescript@5.6.3))
+        version: 0.0.3-aplha.1(vue@3.5.12(typescript@5.6.3))
       zx:
         specifier: ^8.1.9
         version: 8.1.9
@@ -805,8 +805,8 @@ packages:
     engines: {node: '>=0.10.0'}
     hasBin: true
 
-  electron-to-chromium@1.5.40:
-    resolution: {integrity: sha512-LYm78o6if4zTasnYclgQzxEcgMoIcybWOhkATWepN95uwVVWV0/IW10v+2sIeHE+bIYWipLneTftVyQm45UY7g==}
+  electron-to-chromium@1.5.41:
+    resolution: {integrity: sha512-dfdv/2xNjX0P8Vzme4cfzHqnPm5xsZXwsolTYr0eyW18IUmNyG08vL+fttvinTfhKfIKdRoqkDIC9e9iWQCNYQ==}
 
   emittery@0.13.1:
     resolution: {integrity: sha512-DeWwawk6r5yR9jFgnDKYt4sLS0LmHJJi3ZOnb5/JdbYwj3nW+FxQnHIjhBKz8YLC7oRNPVM9NQ47I3CVx34eqQ==}
@@ -1561,8 +1561,8 @@ packages:
   validate-npm-package-license@3.0.4:
     resolution: {integrity: sha512-DpKm2Ui/xN7/HQKCtpZxoRWBhZ9Z0kqtygG8XCgNQ8ZlDnxuQmWhj566j8fN4Cu3/JmbhsDo7fcAJq4s9h27Ew==}
 
-  vue-fn@0.0.3-alpha.0:
-    resolution: {integrity: sha512-7/bvjqN3hbuX2MCyF/SACtijJR6+Bv+3eipvylA0RHVgA9LzBv+yp2jiVNONPnUY5b3nAB0hi4W9/y3+SW18Zw==}
+  vue-fn@0.0.3-aplha.1:
+    resolution: {integrity: sha512-Ek2PaGeWZpBSVRAQQWFn5nlx8ksMAakA32dngiFPdzQ7frG5OCqwotgYIdnMzUM+Ah9Sj6E9XvTNNkUcqfkx6Q==}
     peerDependencies:
       vue: '>=3.5.0'
 
@@ -2351,7 +2351,7 @@ snapshots:
   browserslist@4.24.0:
     dependencies:
       caniuse-lite: 1.0.30001669
-      electron-to-chromium: 1.5.40
+      electron-to-chromium: 1.5.41
       node-releases: 2.0.18
       update-browserslist-db: 1.1.1(browserslist@4.24.0)
 
@@ -2461,7 +2461,7 @@ snapshots:
     dependencies:
       jake: 10.9.2
 
-  electron-to-chromium@1.5.40: {}
+  electron-to-chromium@1.5.41: {}
 
   emittery@0.13.1: {}
 
@@ -3347,7 +3347,7 @@ snapshots:
       spdx-correct: 3.2.0
       spdx-expression-parse: 3.0.1
 
-  vue-fn@0.0.3-alpha.0(vue@3.5.12(typescript@5.6.3)):
+  vue-fn@0.0.3-aplha.1(vue@3.5.12(typescript@5.6.3)):
     dependencies:
       '@vue/reactivity': 3.5.12
       vue: 3.5.12(typescript@5.6.3)

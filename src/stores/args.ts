@@ -4,10 +4,10 @@ import { useI18nStore } from '@/stores/i18n'
 import { Command } from 'commander'
 import * as BusinessUtil from '@/utils/business'
 import { configGenVoMapperFromUserChoise } from '@/commands/gen-vo-mapper/configure'
-import { createApi } from 'vue-fn/store'
+import { createSingletonStore } from 'vue-fn/store'
 
-const $t = useI18nStore().action.t
-const setCurrentLang = useI18nStore().action.setCurrentLang
+const $t = useI18nStore().actions.t
+const setCurrentLang = useI18nStore().actions.setCurrentLang
 
 // ======================= 纯函数 =======================
 export enum SubcommandEnum {
@@ -21,7 +21,7 @@ export type GenVoMapperArgs = {
   outputModule: string
 }
 
-namespace data {
+const store = createSingletonStore(() => {
   const isReady = ref(false)
   const currentCommand = ref(SubcommandEnum.None)
   const debugMode = ref(false)
@@ -114,19 +114,19 @@ namespace data {
       isNever(subcommand)
     }
   }
-  export const api = createApi({
-    state: {
+  return {
+    states: {
       currentCommand,
       debugMode,
       genVoMapperArgs,
     },
-    action: {
+    actions: {
       init,
     },
-  })
-}
+  }
+})
 
 // ==================== 导出api =====================
 export function useArgsStore() {
-  return data.api
+  return store.api
 }

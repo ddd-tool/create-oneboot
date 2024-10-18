@@ -12,9 +12,9 @@ const argsStore = useArgsStore()
 const store = useGenVoMapperStore()
 
 export async function execGenVoMapper() {
-  await argsStore.action.init()
-  const param = argsStore.state.genVoMapperArgs.value
-  store.action.setVoPathRegex(
+  await argsStore.actions.init()
+  const param = argsStore.states.genVoMapperArgs.value
+  store.actions.setVoPathRegex(
     new RegExp(
       '^' +
         path
@@ -38,16 +38,16 @@ export async function execGenVoMapper() {
   //遍历文件夹
   const parseResult: parser.java.JavaFileMeta[] = []
   recursiveFilePath(path.join(param.projectRoot, param.domainModule), (path) => {
-    if (!path.endsWith('.java') || !store.state.voPathRegex.value!.test(path)) {
+    if (!path.endsWith('.java') || !store.states.voPathRegex.value!.test(path)) {
       return
     }
     const content = fs.readFileSync(path, 'utf8')
     parseResult.push(parser.java.parse(path, content))
   })
   let parseMap = parseResult.reduce((map, currentValue) => {
-    const matches = store.state.voPathRegex.value!.exec(currentValue._filePath)
+    const matches = store.states.voPathRegex.value!.exec(currentValue._filePath)
     if (!matches) {
-      console.warn('匹配失败', store.state.voPathRegex.value!, currentValue._filePath)
+      console.warn('匹配失败', store.states.voPathRegex.value!, currentValue._filePath)
       return map
     }
     const module = matches[1]

@@ -1,6 +1,6 @@
 import * as parser from '@/utils/parser'
 import { ref } from '@vue/reactivity'
-import { createApi } from 'vue-fn/store'
+import { createSingletonStore } from 'vue-fn/store'
 
 export type ParseMap = { [moduleName: string]: parser.java.JavaFileMeta[] }
 export type InitParam = {}
@@ -11,22 +11,21 @@ export function isTransient(fieldName: string) {
 }
 
 // ================== 数据 ===================
-namespace data {
+const store = createSingletonStore(() => {
   const voPathRegex = ref<RegExp>()
-
-  export const api = createApi({
-    state: {
+  return {
+    states: {
       voPathRegex,
     },
-    action: {
+    actions: {
       setVoPathRegex(reg: RegExp) {
         voPathRegex.value = reg
       },
     },
-  })
-}
+  }
+})
 
 // ================== export api ===================
 export function useGenVoMapperStore() {
-  return data.api
+  return store.api
 }

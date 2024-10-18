@@ -5,7 +5,7 @@ import * as BusinessUtil from '@/utils/business'
 import { useI18nStore } from '@/stores/i18n'
 import type { GenVoMapperArgs } from '@/stores/args'
 
-const $t = useI18nStore().action.t
+const $t = useI18nStore().actions.t
 
 export async function configGenVoMapperFromUserChoise(): Promise<GenVoMapperArgs> {
   const defaultProjectRoot = process.cwd() || __dirname

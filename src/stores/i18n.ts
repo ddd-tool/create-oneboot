@@ -1,12 +1,12 @@
 import { ref } from '@vue/reactivity'
-import { createSingletonApi } from 'vue-fn/store'
+import { createSingletonStore } from 'vue-fn/store'
 import type { Messages } from '../define'
 import enUS from '../locale/en'
 
 export const validLanguages = ['en', 'zh'] as const
 export type Language = (typeof validLanguages)[number]
 
-namespace data {
+const store = createSingletonStore(() => {
   const currentLang = ref<Language>('zh')
   const locale = ref<Messages>(enUS)
 
@@ -32,19 +32,19 @@ namespace data {
     return v
   }
 
-  export const api = createSingletonApi({
-    state: {
+  return {
+    states: {
       currentLang,
     },
-    action: {
+    actions: {
       t,
       setCurrentLang(lang: Language): void {
         currentLang.value = lang
       },
     },
-  })
-}
+  }
+})
 
 export function useI18nStore() {
-  return data.api
+  return store.api
 }

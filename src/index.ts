@@ -4,7 +4,7 @@ import { execGenVoMapper } from '@/commands/gen-vo-mapper'
 import { useI18nStore } from '@/stores/i18n'
 import packageInfo from '@/utils/package-info'
 
-const $t = useI18nStore().action.t
+const $t = useI18nStore().actions.t
 
 console.info($t('signal.scriptStart'))
 
@@ -25,8 +25,8 @@ async function start() {
   console.log(`repository addr: ${packageInfo.repository.url.replace(/git\+/g, '')}`)
   console.log(`script version: ${packageInfo.version}`)
   console.log('')
-  await argsStore.action.init()
-  const subcommand = argsStore.state.currentCommand.value
+  await argsStore.actions.init()
+  const subcommand = argsStore.states.currentCommand.value
   if (subcommand === 'genVoMapper') {
     await execGenVoMapper()
   } else if (subcommand === 'none') {

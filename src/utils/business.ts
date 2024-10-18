@@ -1,6 +1,6 @@
 import { useI18nStore } from '@/stores/i18n'
 
-const $t = useI18nStore().action.t
+const $t = useI18nStore().actions.t
 
 export function onCancel() {
   throw Error($t('error.userCancel'))
