@@ -1,21 +1,11 @@
 import Parser, { SyntaxNode, Tree } from 'tree-sitter'
 import javaLanguage from 'tree-sitter-java'
+import { forTimes } from './fun'
 
 export namespace java {
-  enum Grammar {
-    package_declaration = 'package_declaration',
-    import_declaration = 'import_declaration',
-    scoped_identifier = 'scoped_identifier',
-    class_declaration = 'class_declaration',
-    interface_declaration = 'interface_declaration',
-    enum_declaration = 'enum_declaration',
-    record_declaration = 'record_declaration',
-    generic_type = 'generic_type',
-    type_identifier = 'type_identifier',
-    identifier = 'identifier',
-    formal_parameters = 'formal_parameters',
-    formal_parameter = 'formal_parameter',
-  }
+  const parser = new Parser()
+  parser.setLanguage(javaLanguage)
+
   export interface JavaFileMeta {
     _filePath: string
     package_declaration?: PackageMeta
@@ -26,28 +16,28 @@ export namespace java {
     record_declaration: RecordMeta[]
   }
   export interface PackageMeta {
-    grammar: Grammar
+    syntax: $JavaSyntax
     name: string
   }
   export interface RecordMeta {
-    grammar: Grammar
+    syntax: $JavaSyntax
     name: string
     formalParameters: FormalParameterMeta[]
   }
   export interface EnumMeta {
-    grammar: Grammar
+    syntax: $JavaSyntax
     name: string
     staticFields: FieldMeta[]
     fields: FieldMeta[]
   }
   export interface ClassMeta {
-    grammar: Grammar
+    syntax: $JavaSyntax
     name: string
     staticFields: FieldMeta[]
     fields: FieldMeta[]
   }
   export interface InterfaceMeta {
-    grammar: Grammar
+    syntax: $JavaSyntax
     name: string
     staticFields: FieldMeta[]
     fields: FieldMeta[]
@@ -58,16 +48,13 @@ export namespace java {
     defaultValue?: string
   }
   export interface FormalParameterMeta {
-    grammar: Grammar
+    syntax: $JavaSyntax
     type: string
     name: string
   }
   export type MethodMeta = {
     name: string
   }
-  const parser = new Parser()
-  parser.setLanguage(javaLanguage)
-
   export function parseTree(content: string): Tree {
     return parser.parse(content)
   }
@@ -88,62 +75,58 @@ export namespace java {
       return result
     }
     for (const child of children) {
-      if (child.type === Grammar.package_declaration) {
-        result.package_declaration = parsePackageMeta(child, content)
-      } else if (child.type === Grammar.import_declaration) {
-        result.import_declaration.push(findFirstTextByGrammar(child, Grammar.scoped_identifier, content))
-      } else if (child.type === Grammar.class_declaration) {
-        result.class_declaration.push(parseClassMeta(child, content))
-      } else if (child.type === Grammar.interface_declaration) {
-        result.interface_declaration.push(parseInterfaceMeta(child, content))
-      } else if (child.type === Grammar.record_declaration) {
-        result.record_declaration.push(parseRecordMeta(child, content))
+      if (child.type === $JavaSyntax.package_declaration) {
+        result.package_declaration = parsePackageMeta(child)
+      } else if (child.type === $JavaSyntax.import_declaration) {
+        result.import_declaration.push(findFirstTextBySyntax(child, $JavaSyntax.scoped_identifier))
+      } else if (child.type === $JavaSyntax.class_declaration) {
+        result.class_declaration.push(parseClassMeta(child))
+      } else if (child.type === $JavaSyntax.interface_declaration) {
+        result.interface_declaration.push(parseInterfaceMeta(child))
+      } else if (child.type === $JavaSyntax.record_declaration) {
+        result.record_declaration.push(parseRecordMeta(child))
       }
     }
     return result
   }
-
-  function parsePackageMeta(node: SyntaxNode, content: string): PackageMeta {
-    const child = node.children.find((ele) => ele.type === Grammar.scoped_identifier)!
+  function parsePackageMeta(node: SyntaxNode): PackageMeta {
+    const child = node.children.find((ele) => ele.type === $JavaSyntax.scoped_identifier)!
     const result: PackageMeta = {
-      grammar: Grammar.package_declaration,
-      name: content.substring(child.startIndex, child.endIndex),
+      syntax: $JavaSyntax.package_declaration,
+      name: findFirstTextBySyntax(node, $JavaSyntax.scoped_identifier),
     }
     return result
   }
-
-  function parseClassMeta(node: SyntaxNode, content: string): ClassMeta {
+  function parseClassMeta(node: SyntaxNode): ClassMeta {
     const result: ClassMeta = {
-      grammar: Grammar.class_declaration,
-      name: findFirstTextByGrammar(node, Grammar.identifier, content),
+      syntax: $JavaSyntax.class_declaration,
+      name: findFirstTextBySyntax(node, $JavaSyntax.identifier),
       staticFields: [],
       fields: [],
     }
     return result
   }
-
-  function parseInterfaceMeta(node: SyntaxNode, content: string): InterfaceMeta {
+  function parseInterfaceMeta(node: SyntaxNode): InterfaceMeta {
     const result: InterfaceMeta = {
-      grammar: Grammar.interface_declaration,
-      name: findFirstTextByGrammar(node, Grammar.identifier, content),
+      syntax: $JavaSyntax.interface_declaration,
+      name: findFirstTextBySyntax(node, $JavaSyntax.identifier),
       staticFields: [],
       fields: [],
     }
     return result
   }
-
-  function parseRecordMeta(node: SyntaxNode, content: string): RecordMeta {
+  function parseRecordMeta(node: SyntaxNode): RecordMeta {
     const result: RecordMeta = {
-      grammar: Grammar.record_declaration,
-      name: findFirstTextByGrammar(node, Grammar.identifier, content),
+      syntax: $JavaSyntax.record_declaration,
+      name: findFirstTextBySyntax(node, $JavaSyntax.identifier),
       formalParameters: [],
     }
     for (const child of node.children) {
-      if (child.type === Grammar.formal_parameters) {
-        const formalParameters = parseFormalParameters(child, content)
+      if (child.type === $JavaSyntax.formal_parameters) {
+        const formalParameters = parseFormalParameters(child)
         for (const formalParameter of formalParameters) {
           result.formalParameters.push({
-            grammar: Grammar.formal_parameter,
+            syntax: $JavaSyntax.formal_parameter,
             type: formalParameter.type,
             name: formalParameter.name,
           })
@@ -152,62 +135,54 @@ export namespace java {
     }
     return result
   }
-
-  function parseFormalParameters(node: SyntaxNode, content: string): FormalParameterMeta[] {
+  function parseFormalParameters(node: SyntaxNode): FormalParameterMeta[] {
     const result: FormalParameterMeta[] = []
     node.children.forEach((e) => {
-      if (e.type !== Grammar.formal_parameter) {
+      if (e.type !== $JavaSyntax.formal_parameter) {
         return
       }
       result.push({
-        grammar: Grammar.formal_parameter,
-        type: findFirstTextByGrammars(e, [Grammar.type_identifier, Grammar.identifier, Grammar.generic_type], content),
-        name: findFirstTextByGrammar(e, Grammar.identifier, content),
+        syntax: $JavaSyntax.formal_parameter,
+        type: findFirstTextBySyntaxes(e, [
+          $JavaSyntax.type_identifier,
+          $JavaSyntax.identifier,
+          $JavaSyntax.generic_type,
+        ]),
+        name: findFirstTextBySyntax(e, $JavaSyntax.identifier),
       })
     })
     return result
   }
-
-  function findFirstTextByGrammar(node: SyntaxNode, grammar: Grammar, content: string): string {
-    try {
-      const child = findFirstNodeByGrammar(node, grammar, content)
-      return content.substring(child.startIndex, child.endIndex)
-    } catch (e) {
-      for (const child of node.children) {
-        console.warn('actual children type: ', child.type, content.substring(child.startIndex, child.endIndex))
-      }
-      throw e
-    }
+  function findFirstTextBySyntax(node: SyntaxNode, syntax: $JavaSyntax): string {
+    return findNodeBySyntax(node, syntax).text
   }
-  function findFirstNodeByGrammar(node: SyntaxNode, grammar: Grammar, content: string): SyntaxNode {
-    for (const child of node.children) {
-      if (child.type === grammar) {
-        return child
-      }
+  function findFirstTextBySyntaxes(node: SyntaxNode, syntaxes: NonEmptyArray<$JavaSyntax>): string {
+    const results = findNodesBySyntaxes(node, syntaxes)
+    if (results.length === 0) {
+      throw Error(`not found [${syntaxes.join(', ')}] in ${node.text}`)
     }
-    throw Error(`not found ${grammar} in ${content.substring(node.startIndex, node.endIndex)}`)
+    return results[0].text
   }
-
-  type NonEmptyArray<T> = [T, ...T[]]
-  function findFirstTextByGrammars(node: SyntaxNode, grammars: NonEmptyArray<Grammar>, content: string): string {
-    try {
-      const child = findFirstNodeByGrammars(node, grammars, content)
-      return content.substring(child.startIndex, child.endIndex)
-    } catch (e) {
-      for (const child of node.children) {
-        console.warn('actual children type: ', child.type, content.substring(child.startIndex, child.endIndex))
-      }
-      throw e
+  function findNodeBySyntax(node: SyntaxNode, syntax: $JavaSyntax): SyntaxNode {
+    const child = node.children.find((ele) => ele.type === syntax)
+    if (!child) {
+      throw Error(`not found [${syntax}] in ${node.text}`)
     }
+    return child
   }
-  function findFirstNodeByGrammars(node: SyntaxNode, grammars: NonEmptyArray<Grammar>, content: string): SyntaxNode {
-    for (const grammar of grammars) {
-      for (const child of node.children) {
-        if (child.type === grammar) {
-          return child
-        }
+  function findNodesBySyntax(node: SyntaxNode, syntax: $JavaSyntax): SyntaxNode[] {
+    const children = node.children
+    return forTimes(children.length).reduce((acc, index) => {
+      if (children[index].type === syntax) {
+        acc.push(children[index])
       }
-    }
-    throw Error(`not found [${grammars.join(', ')}] in ${content.substring(node.startIndex, node.endIndex)}`)
+      return acc
+    }, [] as SyntaxNode[])
+  }
+  function findNodesBySyntaxes(node: SyntaxNode, syntaxes: NonEmptyArray<$JavaSyntax>): SyntaxNode[] {
+    return forTimes(syntaxes.length).reduce((acc, index) => {
+      acc.push(...findNodesBySyntax(node, syntaxes[index]))
+      return acc
+    }, [] as SyntaxNode[])
   }
 }

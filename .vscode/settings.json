@@ -19,9 +19,10 @@
   "i18n-ally.enabledParsers": [
     "ts",
   ],
+  "i18n-ally.disabled": false,
   "i18n-ally.displayLanguage": "zh",
   "i18n-ally.sourceLanguage": "en",
   "i18n-ally.localesPaths": [
-    "src/locale",
+    "src/locale"
   ],
 }

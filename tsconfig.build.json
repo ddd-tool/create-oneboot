@@ -3,6 +3,10 @@
   "include": [
     "src/*",
     "src/**/*",
+    "global.d.ts",
+  ],
+  "exclude": [
+    "**/__tests__",
   ],
   "compilerOptions": {
     "strict": true,

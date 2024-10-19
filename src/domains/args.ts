@@ -1,13 +1,13 @@
 import { ref } from '@vue/reactivity'
 import prompts from 'prompts'
-import { useI18nStore } from '@/stores/i18n'
+import { useI18nAgg } from '@/domains/i18n'
 import { Command } from 'commander'
 import * as BusinessUtil from '@/utils/business'
-import { configGenVoMapperFromUserChoise } from '@/commands/gen-vo-mapper/configure'
-import { createSingletonStore } from 'vue-fn/store'
+import { configGenVoMapperFromUserChoise } from '@/commands/gen-vo-mapper'
+import { createSingletonAgg } from 'vue-fn/domain'
 
-const $t = useI18nStore().actions.t
-const setCurrentLang = useI18nStore().actions.setCurrentLang
+const $t = useI18nAgg().actions.t
+const setCurrentLang = useI18nAgg().actions.setCurrentLang
 
 // ======================= 纯函数 =======================
 export enum SubcommandEnum {
@@ -21,7 +21,7 @@ export type GenVoMapperArgs = {
   outputModule: string
 }
 
-const store = createSingletonStore(() => {
+const store = createSingletonAgg(() => {
   const isReady = ref(false)
   const currentCommand = ref(SubcommandEnum.None)
   const debugMode = ref(false)
@@ -127,6 +127,6 @@ const store = createSingletonStore(() => {
 })
 
 // ==================== 导出api =====================
-export function useArgsStore() {
+export function useArgsAgg() {
   return store.api
 }

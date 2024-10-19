@@ -1,6 +1,4 @@
-import type { Messages } from '../define'
-
-const enDict: Messages = {
+const enDict: I18nMessages = {
   'signal.{str}': 'Error: {str}',
   'signal.scriptStart': '===== Script start =====',
   'signal.successComplete': '===== Program execution succeeded =====',

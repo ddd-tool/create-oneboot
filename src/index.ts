@@ -1,14 +1,15 @@
+import './global-impl'
 import { onCancel } from '@/utils/business'
-import { useArgsStore } from '@/stores/args'
-import { execGenVoMapper } from '@/commands/gen-vo-mapper'
-import { useI18nStore } from '@/stores/i18n'
+import { useArgsAgg } from '@/domains/args'
+import { useGenVoMapperAgg } from '@/domains/gen-vo-mapper'
+import { useI18nAgg } from '@/domains/i18n'
 import packageInfo from '@/utils/package-info'
 
-const $t = useI18nStore().actions.t
+const $t = useI18nAgg().actions.t
 
 console.info($t('signal.scriptStart'))
 
-const argsStore = useArgsStore()
+const argsStore = useArgsAgg()
 
 start()
   .then(() => {
@@ -28,7 +29,7 @@ async function start() {
   await argsStore.actions.init()
   const subcommand = argsStore.states.currentCommand.value
   if (subcommand === 'genVoMapper') {
-    await execGenVoMapper()
+    useGenVoMapperAgg().actions.run(argsStore.states.genVoMapperArgs.value)
   } else if (subcommand === 'none') {
     return
   } else {

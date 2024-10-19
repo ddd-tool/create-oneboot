@@ -1,18 +1,18 @@
 import { ref } from '@vue/reactivity'
-import { createSingletonStore } from 'vue-fn/store'
-import type { Messages } from '../define'
+import { createSingletonAgg } from 'vue-fn/domain'
 import enUS from '../locale/en'
+import zhCN from '../locale/zh'
 
 export const validLanguages = ['en', 'zh'] as const
 export type Language = (typeof validLanguages)[number]
 
-const store = createSingletonStore(() => {
+const store = createSingletonAgg(() => {
   const currentLang = ref<Language>('zh')
-  const locale = ref<Messages>(enUS)
+  const locale = ref<I18nMessages>(enUS)
 
-  function t(key: keyof Messages, defaultValue?: string): string
-  function t(key: keyof Messages, attr: Record<string, string | number>, defaultValue?: string): string
-  function t(key: keyof Messages, attr1?: string | Record<string, string | number>, attr2?: string): string {
+  function t(key: keyof I18nMessages, defaultValue?: string): string
+  function t(key: keyof I18nMessages, attr: Record<string, string | number>, defaultValue?: string): string
+  function t(key: keyof I18nMessages, attr1?: string | Record<string, string | number>, attr2?: string): string {
     let v = locale.value[key]
     if (!v) {
       if (typeof attr1 === 'string') {
@@ -39,12 +39,19 @@ const store = createSingletonStore(() => {
     actions: {
       t,
       setCurrentLang(lang: Language): void {
+        if (lang === 'en') {
+          locale.value = enUS
+        } else if (lang === 'zh') {
+          locale.value = zhCN
+        } else {
+          isNever(lang)
+        }
         currentLang.value = lang
       },
     },
   }
 })
 
-export function useI18nStore() {
+export function useI18nAgg() {
   return store.api
 }

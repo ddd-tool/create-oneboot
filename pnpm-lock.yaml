@@ -62,7 +62,7 @@ importers:
         version: 5.6.3
       vue-fn:
         specifier: latest
-        version: 0.0.3-aplha.1(vue@3.5.12(typescript@5.6.3))
+        version: 0.0.3-aplha.2(vue@3.5.12(typescript@5.6.3))
       zx:
         specifier: ^8.1.9
         version: 8.1.9
@@ -1561,8 +1561,8 @@ packages:
   validate-npm-package-license@3.0.4:
     resolution: {integrity: sha512-DpKm2Ui/xN7/HQKCtpZxoRWBhZ9Z0kqtygG8XCgNQ8ZlDnxuQmWhj566j8fN4Cu3/JmbhsDo7fcAJq4s9h27Ew==}
 
-  vue-fn@0.0.3-aplha.1:
-    resolution: {integrity: sha512-Ek2PaGeWZpBSVRAQQWFn5nlx8ksMAakA32dngiFPdzQ7frG5OCqwotgYIdnMzUM+Ah9Sj6E9XvTNNkUcqfkx6Q==}
+  vue-fn@0.0.3-aplha.2:
+    resolution: {integrity: sha512-mUMQjdszyd5Z61FO692heKBdDtqKnGTTHscTqXpH3x1IB/7MrsO0fHXRWLoDGsaGAwp/w4/QYRlDESdbRzZEHQ==}
     peerDependencies:
       vue: '>=3.5.0'
 
@@ -3347,7 +3347,7 @@ snapshots:
       spdx-correct: 3.2.0
       spdx-expression-parse: 3.0.1
 
-  vue-fn@0.0.3-aplha.1(vue@3.5.12(typescript@5.6.3)):
+  vue-fn@0.0.3-aplha.2(vue@3.5.12(typescript@5.6.3)):
     dependencies:
       '@vue/reactivity': 3.5.12
       vue: 3.5.12(typescript@5.6.3)

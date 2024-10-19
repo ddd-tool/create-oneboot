@@ -1,5 +1,5 @@
 import { describe, it, expect } from '@jest/globals'
-import { java } from '../../src/utils/parser'
+import { java } from '../parser'
 
 describe('java代码解析测试1', () => {
   const code1 = `package com.github.alphafoxz.oneboot.domain.preset_sys.user.vo;
