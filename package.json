@@ -19,7 +19,7 @@
     "build": "pnpm test",
     "build:ts": "pnpm verify && zx ./scripts/build.mjs",
     "build:wasm": "wasm-pack build ./src-rust/ --target nodejs --out-dir ../pkg && ncp ./pkg/wasm_bg.wasm ./bin/wasm_bg.wasm",
-    "test": "pnpm build:ts && npx jest",
+    "test": "pnpm build:ts && build:wasm && npx jest",
     "verify": "tsc -p ./tsconfig.build.json"
   },
   "keywords": [
@@ -39,7 +39,7 @@
     "@jest/globals": "^29.7.0",
     "@tsconfig/node20": "^20.1.4",
     "@types/jest": "^29.5.13",
-    "@types/node": "^22.7.6",
+    "@types/node": "^22.7.7",
     "@types/prompts": "^2.4.9",
     "@vue/reactivity": "^3.5.12",
     "commander": "^12.1.0",
