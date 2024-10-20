@@ -18,8 +18,8 @@
     "dev2": "pnpm build && node ./bin/create-oneboot.cjs genVoMapper --project-root=F:/idea_projects/oneboot --domain-module=domain-preset_sys --output-module=preset_sys",
     "build": "pnpm test",
     "build:ts": "pnpm verify && zx ./scripts/build.mjs",
-    "build:wasm": "wasm-pack build ./src-rust/ --target nodejs --out-dir ../pkg && ncp ./pkg/wasm_bg.wasm ./bin/wasm_bg.wasm",
-    "test": "pnpm build:ts && build:wasm && npx jest",
+    "build:wasm": "wasm-pack build ./src-rust/ --target nodejs --out-dir ../src/wasm && ncp ./src/wasm/wasm_bg.wasm ./bin/wasm_bg.wasm",
+    "test": "pnpm build:wasm && pnpm build:ts && npx jest",
     "verify": "tsc -p ./tsconfig.build.json"
   },
   "keywords": [

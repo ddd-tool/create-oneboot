@@ -4,12 +4,6 @@ pub enum Error {
     IoError(#[from] std::io::Error),
     #[error("{:?}", .0.to_string())]
     ErrorInfo(String),
-    #[cfg(feature = "pest")]
-    #[error(transparent)]
-    PestParseJavaError(#[from] pest::error::Error<crate::parser::java_pest::Rule>),
-    #[cfg(feature = "tree-sitter")]
-    #[error(transparent)]
-    TreeSitterParseJavaError(#[from] tree_sitter::LanguageError),
 }
 
 impl From<&str> for Error {
