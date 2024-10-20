@@ -2,8 +2,7 @@
   "extends": "@tsconfig/node20/tsconfig.json",
   "include": [
     "src/*",
-    "src/**/*",
-    "global.d.ts",
+    "src/**/*"
   ],
   "exclude": [
     "**/__tests__",

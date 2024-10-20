@@ -3,7 +3,7 @@
   "include": [
     "src/*",
     "src/**/*",
-    "__test__",
+    "__tests__",
     "scripts",
   ],
   "compilerOptions": {
