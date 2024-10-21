@@ -1,7 +1,6 @@
 import { forTimes } from '@/utils/fun'
 import * as StrUtil from '@/utils/str'
-import { type FileInfo } from '@/utils/io'
-import { java, java as javaParser } from '@/utils/parser'
+import { java as javaParser } from '@/utils/parser'
 import path from 'node:path'
 import { toInfrastructureMapperPath } from './path'
 

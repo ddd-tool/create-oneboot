@@ -11,7 +11,7 @@ name = "wasm"
 crate-type = ["rlib", "cdylib"]
 
 [features]
-default = ['debug']
+default = []
 debug = ["console_error_panic_hook"]
 
 

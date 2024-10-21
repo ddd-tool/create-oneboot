@@ -1,11 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
-export type FileInfo = {
-  filePath: string
-  content: string
-}
-
 export function writeCodeFile(...files: FileInfo[]) {
   for (const file of files) {
     if (!fs.existsSync(file.filePath)) {

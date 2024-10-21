@@ -18,6 +18,10 @@ declare global {
     'error.badArgs': string
     'error.shouldBeValidDir{dir}': string
   }
+  export type FileInfo = {
+    filePath: string
+    content: string
+  }
   type NonEmptyArray<T> = [T, ...T[]]
   type ArrayLengthMin<T, N extends number, R extends T[] = []> = R['length'] extends N
     ? [...R, ...T[]]
